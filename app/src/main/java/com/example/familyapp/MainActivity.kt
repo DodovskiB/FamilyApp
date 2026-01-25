@@ -112,7 +112,9 @@ fun MainMenuScreen(onOpenList: (ListEntity) -> Unit) {
                                 .clickable { onOpenList(list) }
                         ) {
                             Row(
-                                modifier = Modifier.fillMaxWidth().padding(14.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(list.name, style = MaterialTheme.typography.bodyLarge)
@@ -140,8 +142,10 @@ fun ChecklistScreen(list: ListEntity, onBack: () -> Unit) {
     val loading by vm.loading.collectAsState()
 
     var newItem by remember { mutableStateOf("") }
+    var selectedTab by remember { mutableStateOf(0) } // 0 = Shopping, 1 = Standard
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -152,6 +156,22 @@ fun ChecklistScreen(list: ListEntity, onBack: () -> Unit) {
 
         Spacer(Modifier.height(12.dp))
 
+        TabRow(selectedTabIndex = selectedTab) {
+            Tab(
+                selected = selectedTab == 0,
+                onClick = { selectedTab = 0 },
+                text = { Text("Shopping list") }
+            )
+            Tab(
+                selected = selectedTab == 1,
+                onClick = { selectedTab = 1 },
+                text = { Text("Shopping items") }
+            )
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        // Add item (за сега и за двата таба)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -160,7 +180,14 @@ fun ChecklistScreen(list: ListEntity, onBack: () -> Unit) {
                 value = newItem,
                 onValueChange = { newItem = it },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("Внеси нов продукт") },
+                placeholder = {
+                    Text(
+                        if (selectedTab == 0)
+                            "Нов продукт за купување"
+                        else
+                            "Нов стандарден item"
+                    )
+                },
                 singleLine = true
             )
             Button(
@@ -179,7 +206,7 @@ fun ChecklistScreen(list: ListEntity, onBack: () -> Unit) {
             CircularProgressIndicator()
         } else {
             if (items.isEmpty()) {
-                Text("Нема продукти во оваа листа. Додај одозгора.")
+                Text("Нема items во оваа листа.")
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(items) { item ->
