@@ -1,5 +1,6 @@
 package com.example.familyapp
 
+import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,33 +13,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
-import com.example.familyapp.data.db.AppDatabase
-import com.example.familyapp.data.entity.ItemEntity
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.familyapp.data.entity.ListEntity
 import com.example.familyapp.ui.theme.FamilyAppTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import androidx.compose.material3.HorizontalDivider
-
+import com.example.familyapp.ui.viewmodel.ChecklistViewModel
+import com.example.familyapp.ui.viewmodel.ChecklistViewModelFactory
+import com.example.familyapp.ui.viewmodel.MainMenuViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // (опционално) DB_TEST можеш да го оставиш или да го тргнеш подоцна
-        val db = AppDatabase.get(this)
-        lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                val existing = db.listDao().getAll()
-                if (existing.isEmpty()) {
-                    db.listDao().insert(ListEntity(name = "Дома"))
-                    db.listDao().insert(ListEntity(name = "Викендица"))
-                }
-            }
-        }
-
         setContent {
             FamilyAppTheme {
                 Surface(
@@ -65,6 +49,7 @@ fun FamilyAppRoot() {
         Screen.MainMenu -> MainMenuScreen(
             onOpenList = { selected -> screen = Screen.Checklist(selected) }
         )
+
         is Screen.Checklist -> ChecklistScreen(
             list = s.list,
             onBack = { screen = Screen.MainMenu }
@@ -74,34 +59,16 @@ fun FamilyAppRoot() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainMenuScreen(
-    onOpenList: (ListEntity) -> Unit
-) {
-    val context = LocalContext.current
-    val db = remember { AppDatabase.get(context) }
-    val scope = rememberCoroutineScope()
+fun MainMenuScreen(onOpenList: (ListEntity) -> Unit) {
+    val vm: MainMenuViewModel = viewModel()
 
-    var lists by remember { mutableStateOf<List<ListEntity>>(emptyList()) }
+    val lists by vm.lists.collectAsState()
+    val loading by vm.loading.collectAsState()
+
     var newListName by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(true) }
-
-    fun loadLists() {
-        scope.launch {
-            isLoading = true
-            val loaded = withContext(Dispatchers.IO) { db.listDao().getAll() }
-            lists = loaded
-            isLoading = false
-        }
-    }
-
-    LaunchedEffect(Unit) { loadLists() }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(
-            text = "FamilyApp",
-            style = MaterialTheme.typography.headlineSmall
-        )
-
+        Text("FamilyApp", style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(12.dp))
 
         Row(
@@ -117,16 +84,8 @@ fun MainMenuScreen(
             )
             Button(
                 onClick = {
-                    val name = newListName.trim()
-                    if (name.isNotEmpty()) {
-                        scope.launch {
-                            withContext(Dispatchers.IO) {
-                                db.listDao().insert(ListEntity(name = name))
-                            }
-                            newListName = ""
-                            loadLists()
-                        }
-                    }
+                    vm.addList(newListName)
+                    newListName = ""
                 }
             ) {
                 Text("Add")
@@ -135,16 +94,13 @@ fun MainMenuScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        if (isLoading) {
+        if (loading) {
             CircularProgressIndicator()
         } else {
             if (lists.isEmpty()) {
                 Text("Нема листи. Додај прва листа погоре.")
             } else {
-                Text(
-                    text = "Твои листи",
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text("Твои листи", style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
 
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -156,9 +112,7 @@ fun MainMenuScreen(
                                 .clickable { onOpenList(list) }
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(14.dp),
+                                modifier = Modifier.fillMaxWidth().padding(14.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(list.name, style = MaterialTheme.typography.bodyLarge)
@@ -174,38 +128,25 @@ fun MainMenuScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChecklistScreen(
-    list: ListEntity,
-    onBack: () -> Unit
-) {
+fun ChecklistScreen(list: ListEntity, onBack: () -> Unit) {
     val context = LocalContext.current
-    val db = remember { AppDatabase.get(context) }
-    val scope = rememberCoroutineScope()
+    val app = context.applicationContext as Application
 
-    var items by remember { mutableStateOf<List<ItemEntity>>(emptyList()) }
+    val vm: ChecklistViewModel = viewModel(
+        factory = ChecklistViewModelFactory(app, list.id)
+    )
+
+    val items by vm.items.collectAsState()
+    val loading by vm.loading.collectAsState()
+
     var newItem by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(true) }
-
-    fun loadItems() {
-        scope.launch {
-            isLoading = true
-            val loaded = withContext(Dispatchers.IO) { db.itemDao().getByList(list.id) }
-            items = loaded
-            isLoading = false
-        }
-    }
-
-    LaunchedEffect(list.id) { loadItems() }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = list.name,
-                style = MaterialTheme.typography.headlineSmall
-            )
+            Text(list.name, style = MaterialTheme.typography.headlineSmall)
             TextButton(onClick = onBack) { Text("Back") }
         }
 
@@ -224,22 +165,8 @@ fun ChecklistScreen(
             )
             Button(
                 onClick = {
-                    val title = newItem.trim()
-                    if (title.isNotEmpty()) {
-                        scope.launch {
-                            withContext(Dispatchers.IO) {
-                                db.itemDao().insert(
-                                    ItemEntity(
-                                        listId = list.id,
-                                        title = title,
-                                        isChecked = false
-                                    )
-                                )
-                            }
-                            newItem = ""
-                            loadItems()
-                        }
-                    }
+                    vm.addItem(newItem)
+                    newItem = ""
                 }
             ) {
                 Text("Add")
@@ -248,7 +175,7 @@ fun ChecklistScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        if (isLoading) {
+        if (loading) {
             CircularProgressIndicator()
         } else {
             if (items.isEmpty()) {
@@ -263,21 +190,13 @@ fun ChecklistScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(item.title, style = MaterialTheme.typography.bodyLarge)
-
                             Checkbox(
                                 checked = item.isChecked,
                                 onCheckedChange = { checked ->
-                                    scope.launch {
-                                        withContext(Dispatchers.IO) {
-                                            db.itemDao().update(item.copy(isChecked = checked))
-                                        }
-                                        // за да се рефрешне листата
-                                        loadItems()
-                                    }
+                                    vm.toggleChecked(item, checked)
                                 }
                             )
                         }
-
                         HorizontalDivider()
                     }
                 }
