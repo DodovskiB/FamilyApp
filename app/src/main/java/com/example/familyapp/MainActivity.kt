@@ -67,7 +67,11 @@ fun MainMenuScreen(onOpenList: (ListEntity) -> Unit) {
 
     var newListName by remember { mutableStateOf("") }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
         Text("FamilyApp", style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(12.dp))
 
@@ -97,29 +101,22 @@ fun MainMenuScreen(onOpenList: (ListEntity) -> Unit) {
         if (loading) {
             CircularProgressIndicator()
         } else {
-            if (lists.isEmpty()) {
-                Text("Нема листи. Додај прва листа погоре.")
-            } else {
-                Text("Твои листи", style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(8.dp))
-
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(lists) { list ->
-                        Card(
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(lists) { list ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp)
+                            .clickable { onOpenList(list) }
+                    ) {
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 6.dp)
-                                .clickable { onOpenList(list) }
+                                .padding(14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(14.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(list.name, style = MaterialTheme.typography.bodyLarge)
-                                Text("▶", style = MaterialTheme.typography.bodyLarge)
-                            }
+                            Text(list.name, style = MaterialTheme.typography.bodyLarge)
+                            Text("▶")
                         }
                     }
                 }
@@ -139,12 +136,15 @@ fun ChecklistScreen(list: ListEntity, onBack: () -> Unit) {
     )
 
     val items by vm.items.collectAsState()
-    val loading by vm.loading.collectAsState()
 
     var newItem by remember { mutableStateOf("") }
-    var selectedTab by remember { mutableStateOf(0) } // 0 = Shopping, 1 = Standard
+    var selectedTab by remember { mutableStateOf(0) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -159,19 +159,24 @@ fun ChecklistScreen(list: ListEntity, onBack: () -> Unit) {
         TabRow(selectedTabIndex = selectedTab) {
             Tab(
                 selected = selectedTab == 0,
-                onClick = { selectedTab = 0 },
+                onClick = {
+                    selectedTab = 0
+                    vm.setTab(0)
+                },
                 text = { Text("Shopping list") }
             )
             Tab(
                 selected = selectedTab == 1,
-                onClick = { selectedTab = 1 },
+                onClick = {
+                    selectedTab = 1
+                    vm.setTab(1)
+                },
                 text = { Text("Shopping items") }
             )
         }
 
         Spacer(Modifier.height(12.dp))
 
-        // Add item (за сега и за двата таба)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -183,9 +188,9 @@ fun ChecklistScreen(list: ListEntity, onBack: () -> Unit) {
                 placeholder = {
                     Text(
                         if (selectedTab == 0)
-                            "Нов продукт за купување"
+                            "Add to shopping list"
                         else
-                            "Нов стандарден item"
+                            "Add to shopping items"
                     )
                 },
                 singleLine = true
@@ -202,31 +207,23 @@ fun ChecklistScreen(list: ListEntity, onBack: () -> Unit) {
 
         Spacer(Modifier.height(16.dp))
 
-        if (loading) {
-            CircularProgressIndicator()
-        } else {
-            if (items.isEmpty()) {
-                Text("Нема items во оваа листа.")
-            } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(items) { item ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 10.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(item.title, style = MaterialTheme.typography.bodyLarge)
-                            Checkbox(
-                                checked = item.isChecked,
-                                onCheckedChange = { checked ->
-                                    vm.toggleChecked(item, checked)
-                                }
-                            )
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(items) { item ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(item.title)
+                    Checkbox(
+                        checked = item.isChecked,
+                        onCheckedChange = { checked ->
+                            vm.toggleChecked(item, checked)
                         }
-                        HorizontalDivider()
-                    }
+                    )
                 }
+                HorizontalDivider()
             }
         }
     }

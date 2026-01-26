@@ -10,30 +10,25 @@ class RoomFamilyRepository(
     private val itemDao: ItemDao
 ) : FamilyRepository {
 
-    // ===== LISTS =====
-
     override suspend fun getLists(): List<ListEntity> {
         return listDao.getAll()
     }
 
     override suspend fun addList(name: String): Long {
-        return listDao.insert(
-            ListEntity(name = name.trim())
-        )
+        return listDao.insert(ListEntity(name = name))
     }
 
-    // ===== ITEMS =====
-
-    override suspend fun getItems(listId: Long): List<ItemEntity> {
-        return itemDao.getByList(listId)
+    override suspend fun getItems(listId: Long, kind: Int): List<ItemEntity> {
+        return itemDao.getByList(listId, kind)
     }
 
-    override suspend fun addItem(listId: Long, title: String): Long {
+    override suspend fun addItem(listId: Long, title: String, kind: Int): Long {
         return itemDao.insert(
             ItemEntity(
                 listId = listId,
-                title = title.trim(),
-                isChecked = false
+                title = title,
+                isChecked = false,
+                kind = kind
             )
         )
     }

@@ -5,11 +5,11 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "items")
 data class ItemEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val listId: Long,
     val title: String,
-    val isChecked: Boolean = false
+    val isChecked: Boolean = false,
+
+    // 0 = Shopping list, 1 = Shopping items
+    val kind: Int = 0
 )
-
-

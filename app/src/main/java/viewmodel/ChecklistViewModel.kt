@@ -19,34 +19,41 @@ class ChecklistViewModel(
     private val listId: Long
 ) : AndroidViewModel(app) {
 
-    private val db = AppDatabase.get(app)
-    private val repo = RoomFamilyRepository(db.listDao(), db.itemDao())
+    private val repo = RoomFamilyRepository(
+        AppDatabase.get(app).listDao(),
+        AppDatabase.get(app).itemDao()
+    )
 
     private val _items = MutableStateFlow<List<ItemEntity>>(emptyList())
     val items: StateFlow<List<ItemEntity>> = _items
 
-    private val _loading = MutableStateFlow(false)
-    val loading: StateFlow<Boolean> = _loading
+    private val _selectedKind = MutableStateFlow(0) // 0 = Shopping list, 1 = Shopping items
 
     init {
         refresh()
     }
 
+    fun setTab(kind: Int) {
+        _selectedKind.value = kind
+        refresh()
+    }
+
     fun refresh() {
         viewModelScope.launch {
-            _loading.value = true
-            val loaded = withContext(Dispatchers.IO) { repo.getItems(listId) }
-            _items.value = loaded
-            _loading.value = false
+            val data = withContext(Dispatchers.IO) {
+                repo.getItems(listId, _selectedKind.value)
+            }
+            _items.value = data
         }
     }
 
     fun addItem(title: String) {
-        val clean = title.trim()
-        if (clean.isEmpty()) return
+        if (title.isBlank()) return
 
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { repo.addItem(listId, clean) }
+            withContext(Dispatchers.IO) {
+                repo.addItem(listId, title.trim(), _selectedKind.value)
+            }
             refresh()
         }
     }
@@ -66,10 +73,6 @@ class ChecklistViewModelFactory(
     private val listId: Long
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ChecklistViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return ChecklistViewModel(app, listId) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        return ChecklistViewModel(app, listId) as T
     }
 }

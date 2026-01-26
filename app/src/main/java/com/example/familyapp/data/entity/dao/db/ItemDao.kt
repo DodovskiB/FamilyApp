@@ -1,19 +1,16 @@
 package com.example.familyapp.data.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 import com.example.familyapp.data.entity.ItemEntity
 
 @Dao
 interface ItemDao {
 
+    @Query("SELECT * FROM items WHERE listId = :listId AND kind = :kind ORDER BY id ASC")
+    suspend fun getByList(listId: Long, kind: Int): List<ItemEntity>
+
     @Insert
     suspend fun insert(item: ItemEntity): Long
-
-    @Query("SELECT * FROM items WHERE listId = :listId ORDER BY id DESC")
-    suspend fun getByList(listId: Long): List<ItemEntity>
 
     @Update
     suspend fun update(item: ItemEntity)
