@@ -9,7 +9,6 @@ data class ItemEntity(
     val listId: Long,
     val title: String,
     val isChecked: Boolean = false,
-
-    // 0 = Shopping list, 1 = Shopping items
-    val kind: Int = 0
+    val kind: Int = 0,          // 0=Shopping list, 1=Shopping items
+    val isActive: Boolean = true // ако е false, item е “избришан” од каталог
 )

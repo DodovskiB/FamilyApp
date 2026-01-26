@@ -7,55 +7,31 @@ import com.example.familyapp.data.db.AppDatabase
 import com.example.familyapp.data.entity.ListEntity
 import com.example.familyapp.data.repo.RoomFamilyRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainMenuViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val db = AppDatabase.get(app)
-    private val repo = RoomFamilyRepository(db.listDao(), db.itemDao())
+    private val repo = RoomFamilyRepository(
+        AppDatabase.get(app).listDao(),
+        AppDatabase.get(app).itemDao()
+    )
 
-    private val _lists = MutableStateFlow<List<ListEntity>>(emptyList())
-    val lists: StateFlow<List<ListEntity>> = _lists
-
-    private val _loading = MutableStateFlow(false)
-    val loading: StateFlow<Boolean> = _loading
-
-    init {
-        viewModelScope.launch {
-            ensureDefaultLists()
-            refresh()
-        }
-    }
-
-    private suspend fun ensureDefaultLists() {
-        withContext(Dispatchers.IO) {
-            val existing = repo.getLists()
-            if (existing.isEmpty()) {
-                repo.addList("Дома")
-                repo.addList("Викендица")
-            }
-        }
-    }
-
-    fun refresh() {
-        viewModelScope.launch {
-            _loading.value = true
-            val loaded = withContext(Dispatchers.IO) { repo.getLists() }
-            _lists.value = loaded
-            _loading.value = false
-        }
-    }
+    val lists: StateFlow<List<ListEntity>> =
+        repo.observeLists()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun addList(name: String) {
-        val clean = name.trim()
-        if (clean.isEmpty()) return
+        val trimmed = name.trim()
+        if (trimmed.isBlank()) return
 
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { repo.addList(clean) }
-            refresh()
+            withContext(Dispatchers.IO) {
+                repo.addList(trimmed)
+            }
         }
     }
 }

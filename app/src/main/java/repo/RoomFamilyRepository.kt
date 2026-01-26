@@ -4,36 +4,42 @@ import com.example.familyapp.data.dao.ItemDao
 import com.example.familyapp.data.dao.ListDao
 import com.example.familyapp.data.entity.ItemEntity
 import com.example.familyapp.data.entity.ListEntity
+import kotlinx.coroutines.flow.Flow
 
 class RoomFamilyRepository(
     private val listDao: ListDao,
     private val itemDao: ItemDao
 ) : FamilyRepository {
 
-    override suspend fun getLists(): List<ListEntity> {
-        return listDao.getAll()
-    }
+    fun observeLists(): Flow<List<ListEntity>> = listDao.observeAll()
 
-    override suspend fun addList(name: String): Long {
-        return listDao.insert(ListEntity(name = name))
-    }
+    fun observeItems(listId: Long, kind: Int): Flow<List<ItemEntity>> =
+        itemDao.observeByList(listId, kind)
 
-    override suspend fun getItems(listId: Long, kind: Int): List<ItemEntity> {
-        return itemDao.getByList(listId, kind)
-    }
+    override suspend fun addList(name: String): Long =
+        listDao.insert(ListEntity(name = name))
 
-    override suspend fun addItem(listId: Long, title: String, kind: Int): Long {
-        return itemDao.insert(
+    override suspend fun addItem(listId: Long, title: String, kind: Int): Long =
+        itemDao.insert(
             ItemEntity(
                 listId = listId,
                 title = title,
                 isChecked = false,
-                kind = kind
+                kind = kind,
+                isActive = true
             )
         )
-    }
 
     override suspend fun updateItem(item: ItemEntity) {
         itemDao.update(item)
     }
+
+    // Soft delete (catalog delete)
+    suspend fun deactivateItem(item: ItemEntity) {
+        itemDao.update(item.copy(isActive = false))
+    }
+
+    // (интерфејс legacy)
+    override suspend fun getLists(): List<ListEntity> = emptyList()
+    override suspend fun getItems(listId: Long, kind: Int): List<ItemEntity> = emptyList()
 }

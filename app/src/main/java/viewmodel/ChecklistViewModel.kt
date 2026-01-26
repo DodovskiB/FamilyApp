@@ -10,7 +10,10 @@ import com.example.familyapp.data.entity.ItemEntity
 import com.example.familyapp.data.repo.RoomFamilyRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -24,37 +27,25 @@ class ChecklistViewModel(
         AppDatabase.get(app).itemDao()
     )
 
-    private val _items = MutableStateFlow<List<ItemEntity>>(emptyList())
-    val items: StateFlow<List<ItemEntity>> = _items
+    private val selectedKind = MutableStateFlow(0) // 0=Shopping list, 1=Shopping items
 
-    private val _selectedKind = MutableStateFlow(0) // 0 = Shopping list, 1 = Shopping items
-
-    init {
-        refresh()
-    }
+    val items: StateFlow<List<ItemEntity>> =
+        selectedKind
+            .flatMapLatest { kind: Int -> repo.observeItems(listId, kind) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun setTab(kind: Int) {
-        _selectedKind.value = kind
-        refresh()
-    }
-
-    fun refresh() {
-        viewModelScope.launch {
-            val data = withContext(Dispatchers.IO) {
-                repo.getItems(listId, _selectedKind.value)
-            }
-            _items.value = data
-        }
+        selectedKind.value = kind
     }
 
     fun addItem(title: String) {
-        if (title.isBlank()) return
+        val trimmed = title.trim()
+        if (trimmed.isBlank()) return
 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                repo.addItem(listId, title.trim(), _selectedKind.value)
+                repo.addItem(listId, trimmed, selectedKind.value)
             }
-            refresh()
         }
     }
 
@@ -63,7 +54,14 @@ class ChecklistViewModel(
             withContext(Dispatchers.IO) {
                 repo.updateItem(item.copy(isChecked = checked))
             }
-            refresh()
+        }
+    }
+
+    fun deleteItem(item: ItemEntity) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                repo.deactivateItem(item)
+            }
         }
     }
 }

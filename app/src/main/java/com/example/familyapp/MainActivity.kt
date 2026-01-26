@@ -3,6 +3,7 @@ package com.example.familyapp
 import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,60 +12,62 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.familyapp.data.entity.ListEntity
+import com.example.familyapp.data.entity.ItemEntity
 import com.example.familyapp.ui.theme.FamilyAppTheme
 import com.example.familyapp.ui.viewmodel.ChecklistViewModel
 import com.example.familyapp.ui.viewmodel.ChecklistViewModelFactory
 import com.example.familyapp.ui.viewmodel.MainMenuViewModel
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             FamilyAppTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    FamilyAppRoot()
+                    AppRouter(application = application)
                 }
             }
         }
     }
 }
 
-private sealed class Screen {
-    data object MainMenu : Screen()
-    data class Checklist(val list: ListEntity) : Screen()
-}
-
 @Composable
-fun FamilyAppRoot() {
-    var screen by remember { mutableStateOf<Screen>(Screen.MainMenu) }
+private fun AppRouter(application: Application) {
+    var selectedListId by remember { mutableStateOf<Long?>(null) }
+    var selectedListName by remember { mutableStateOf("") }
 
-    when (val s = screen) {
-        Screen.MainMenu -> MainMenuScreen(
-            onOpenList = { selected -> screen = Screen.Checklist(selected) }
+    if (selectedListId == null) {
+        MainMenuScreen(
+            onOpenList = { id, name ->
+                selectedListId = id
+                selectedListName = name
+            }
         )
+    } else {
+        BackHandler { selectedListId = null }
 
-        is Screen.Checklist -> ChecklistScreen(
-            list = s.list,
-            onBack = { screen = Screen.MainMenu }
+        ChecklistScreen(
+            application = application,
+            listId = selectedListId!!,
+            listName = selectedListName,
+            onBack = { selectedListId = null }
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainMenuScreen(onOpenList: (ListEntity) -> Unit) {
-    val vm: MainMenuViewModel = viewModel()
-
+fun MainMenuScreen(
+    vm: MainMenuViewModel = viewModel(),
+    onOpenList: (Long, String) -> Unit
+) {
     val lists by vm.lists.collectAsState()
-    val loading by vm.loading.collectAsState()
-
     var newListName by remember { mutableStateOf("") }
 
     Column(
@@ -72,51 +75,39 @@ fun MainMenuScreen(onOpenList: (ListEntity) -> Unit) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text("FamilyApp", style = MaterialTheme.typography.headlineSmall)
-        Spacer(Modifier.height(12.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            TextField(
+        Text("Family Lists", style = MaterialTheme.typography.headlineSmall)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row {
+            OutlinedTextField(
                 value = newListName,
                 onValueChange = { newListName = it },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("Нова листа (пример: Аптека)") },
-                singleLine = true
+                placeholder = { Text("New list name") }
             )
-            Button(
-                onClick = {
-                    vm.addList(newListName)
-                    newListName = ""
-                }
-            ) {
-                Text("Add")
-            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = {
+                vm.addList(newListName)
+                newListName = ""
+            }) { Text("Add") }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        if (loading) {
-            CircularProgressIndicator()
+        if (lists.isEmpty()) {
+            Text("No lists yet. Add one above.")
         } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
+            LazyColumn {
                 items(lists) { list ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 6.dp)
-                            .clickable { onOpenList(list) }
+                            .clickable { onOpenList(list.id, list.name) }
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(14.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
                             Text(list.name, style = MaterialTheme.typography.bodyLarge)
-                            Text("▶")
                         }
                     }
                 }
@@ -125,20 +116,23 @@ fun MainMenuScreen(onOpenList: (ListEntity) -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChecklistScreen(list: ListEntity, onBack: () -> Unit) {
-    val context = LocalContext.current
-    val app = context.applicationContext as Application
-
+fun ChecklistScreen(
+    application: Application,
+    listId: Long,
+    listName: String,
+    onBack: () -> Unit
+) {
     val vm: ChecklistViewModel = viewModel(
-        factory = ChecklistViewModelFactory(app, list.id)
+        factory = ChecklistViewModelFactory(application, listId)
     )
 
     val items by vm.items.collectAsState()
 
     var newItem by remember { mutableStateOf("") }
-    var selectedTab by remember { mutableStateOf(0) }
+    var tabIndex by remember { mutableStateOf(0) } // 0=Shopping list, 1=Shopping items
+
+    LaunchedEffect(tabIndex) { vm.setTab(tabIndex) }
 
     Column(
         modifier = Modifier
@@ -150,80 +144,84 @@ fun ChecklistScreen(list: ListEntity, onBack: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(list.name, style = MaterialTheme.typography.headlineSmall)
+            Text(listName, style = MaterialTheme.typography.headlineSmall)
             TextButton(onClick = onBack) { Text("Back") }
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        TabRow(selectedTabIndex = selectedTab) {
+        TabRow(selectedTabIndex = tabIndex) {
             Tab(
-                selected = selectedTab == 0,
-                onClick = {
-                    selectedTab = 0
-                    vm.setTab(0)
-                },
+                selected = tabIndex == 0,
+                onClick = { tabIndex = 0 },
                 text = { Text("Shopping list") }
             )
             Tab(
-                selected = selectedTab == 1,
-                onClick = {
-                    selectedTab = 1
-                    vm.setTab(1)
-                },
+                selected = tabIndex == 1,
+                onClick = { tabIndex = 1 },
                 text = { Text("Shopping items") }
             )
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            TextField(
+        Row(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
                 value = newItem,
                 onValueChange = { newItem = it },
                 modifier = Modifier.weight(1f),
-                placeholder = {
-                    Text(
-                        if (selectedTab == 0)
-                            "Add to shopping list"
-                        else
-                            "Add to shopping items"
-                    )
-                },
-                singleLine = true
+                placeholder = { Text("Add item") }
             )
-            Button(
-                onClick = {
-                    vm.addItem(newItem)
-                    newItem = ""
-                }
-            ) {
-                Text("Add")
-            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = {
+                vm.addItem(newItem)
+                newItem = ""
+            }) { Text("Add") }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(items) { item ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(item.title)
-                    Checkbox(
-                        checked = item.isChecked,
-                        onCheckedChange = { checked ->
-                            vm.toggleChecked(item, checked)
-                        }
+        if (items.isEmpty()) {
+            Text("No items yet.")
+        } else {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(items) { item ->
+                    ItemRow(
+                        item = item,
+                        showDelete = (tabIndex == 1),
+                        onToggle = { checked -> vm.toggleChecked(item, checked) },
+                        onDelete = { vm.deleteItem(item) }
                     )
                 }
-                HorizontalDivider()
+            }
+        }
+    }
+}
+
+@Composable
+private fun ItemRow(
+    item: ItemEntity,
+    showDelete: Boolean,
+    onToggle: (Boolean) -> Unit,
+    onDelete: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(item.title, style = MaterialTheme.typography.bodyLarge)
+
+        Row {
+            Checkbox(
+                checked = item.isChecked,
+                onCheckedChange = onToggle
+            )
+
+            if (showDelete) {
+                Spacer(modifier = Modifier.width(8.dp))
+                TextButton(onClick = onDelete) { Text("Delete") }
             }
         }
     }
