@@ -1,4 +1,4 @@
-package com.example.familyapp.ui.viewmodel
+package com.example.familyapp.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -9,13 +9,12 @@ import com.example.familyapp.data.db.AppDatabase
 import com.example.familyapp.data.entity.ItemEntity
 import com.example.familyapp.data.repo.RoomFamilyRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.max
 
 class ChecklistViewModel(
     app: Application,
@@ -27,37 +26,55 @@ class ChecklistViewModel(
         AppDatabase.get(app).itemDao()
     )
 
-    private val selectedKind = MutableStateFlow(0) // 0=Shopping list, 1=Shopping items
-
     val items: StateFlow<List<ItemEntity>> =
-        selectedKind
-            .flatMapLatest { kind: Int -> repo.observeItems(listId, kind) }
+        repo.observeItems(listId)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    fun setTab(kind: Int) {
-        selectedKind.value = kind
-    }
-
     fun addItem(title: String) {
-        val trimmed = title.trim()
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                repo.addOrIncrementItem(listId, title)
+            }
+        }
+    }
+
+    fun toggleChecked(item: ItemEntity) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                repo.updateItem(item.copy(isChecked = !item.isChecked))
+            }
+        }
+    }
+
+    fun incQty(item: ItemEntity) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                repo.updateItem(item.copy(quantity = item.quantity + 1))
+            }
+        }
+    }
+
+    fun decQty(item: ItemEntity) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val next = item.quantity - 1
+                if (next <= 0) repo.deactivateItem(item)
+                else repo.updateItem(item.copy(quantity = max(1, next)))
+            }
+        }
+    }
+
+    fun rename(item: ItemEntity, newTitle: String) {
+        val trimmed = newTitle.trim()
         if (trimmed.isBlank()) return
-
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                repo.addItem(listId, trimmed, selectedKind.value)
+                repo.updateItem(item.copy(title = trimmed))
             }
         }
     }
 
-    fun toggleChecked(item: ItemEntity, checked: Boolean) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                repo.updateItem(item.copy(isChecked = checked))
-            }
-        }
-    }
-
-    fun deleteItem(item: ItemEntity) {
+    fun delete(item: ItemEntity) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 repo.deactivateItem(item)

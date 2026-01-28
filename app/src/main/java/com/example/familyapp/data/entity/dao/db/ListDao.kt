@@ -9,9 +9,12 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ListDao {
 
-    @Query("SELECT * FROM lists ORDER BY name ASC")
-    fun observeAll(): Flow<List<ListEntity>>
-
     @Insert
     suspend fun insert(list: ListEntity): Long
+
+    @Query("SELECT * FROM lists ORDER BY sortOrder ASC, id ASC")
+    fun observeAll(): Flow<List<ListEntity>>
+
+    @Query("SELECT COALESCE(MAX(sortOrder), 0) FROM lists")
+    suspend fun getMaxSortOrder(): Int
 }

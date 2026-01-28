@@ -16,7 +16,14 @@ interface ItemDao {
     @Update
     suspend fun update(item: ItemEntity)
 
-    // за прикажување во UI (само активни)
-    @Query("SELECT * FROM items WHERE listId = :listId AND kind = :kind AND isActive = 1 ORDER BY id DESC")
-    fun observeByList(listId: Long, kind: Int): Flow<List<ItemEntity>>
+    @Query("SELECT * FROM items WHERE listId = :listId AND isActive = 1 ORDER BY id DESC")
+    fun observeByList(listId: Long): Flow<List<ItemEntity>>
+
+    // за да не се дуплира (case-insensitive)
+    @Query(
+        "SELECT * FROM items " +
+                "WHERE listId = :listId AND isActive = 1 AND lower(title) = :titleLower " +
+                "LIMIT 1"
+    )
+    suspend fun findActiveByTitle(listId: Long, titleLower: String): ItemEntity?
 }

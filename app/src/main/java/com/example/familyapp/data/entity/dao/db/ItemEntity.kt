@@ -7,8 +7,23 @@ import androidx.room.PrimaryKey
 data class ItemEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val listId: Long,
+
     val title: String,
+
+    // tap во Shopping list го менува ова (прецртано/избледено)
     val isChecked: Boolean = false,
-    val kind: Int = 0,          // 0=Shopping list, 1=Shopping items
-    val isActive: Boolean = true // ако е false, item е “избришан” од каталог
+
+    // stepper (+/-). Ако стане 0 -> item се трга (isActive=false)
+    val quantity: Int = 1,
+
+    // Категорија за боја/групирање (подоцна ќе додадеме UI за избор)
+    val category: String = "Разно",
+
+    // Само URI/path, не слика во база
+    val imageUri: String? = null,
+
+    val note: String? = null,
+
+    // Soft delete
+    val isActive: Boolean = true
 )

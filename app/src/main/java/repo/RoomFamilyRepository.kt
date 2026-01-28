@@ -9,37 +9,40 @@ import kotlinx.coroutines.flow.Flow
 class RoomFamilyRepository(
     private val listDao: ListDao,
     private val itemDao: ItemDao
-) : FamilyRepository {
-
+) {
     fun observeLists(): Flow<List<ListEntity>> = listDao.observeAll()
 
-    fun observeItems(listId: Long, kind: Int): Flow<List<ItemEntity>> =
-        itemDao.observeByList(listId, kind)
+    fun observeItems(listId: Long): Flow<List<ItemEntity>> =
+        itemDao.observeByList(listId)
 
-    override suspend fun addList(name: String): Long =
-        listDao.insert(ListEntity(name = name))
+    suspend fun addList(name: String, sortOrder: Int? = null): Long {
+        val order = sortOrder ?: (listDao.getMaxSortOrder() + 1)
+        return listDao.insert(ListEntity(name = name.trim(), sortOrder = order))
+    }
 
-    override suspend fun addItem(listId: Long, title: String, kind: Int): Long =
-        itemDao.insert(
-            ItemEntity(
-                listId = listId,
-                title = title,
-                isChecked = false,
-                kind = kind,
-                isActive = true
+    suspend fun addOrIncrementItem(listId: Long, title: String): Long {
+        val trimmed = title.trim()
+        if (trimmed.isBlank()) return -1
+
+        val existing = itemDao.findActiveByTitle(listId, trimmed.lowercase())
+        return if (existing != null) {
+            itemDao.update(existing.copy(quantity = existing.quantity + 1))
+            existing.id
+        } else {
+            itemDao.insert(
+                ItemEntity(
+                    listId = listId,
+                    title = trimmed,
+                    quantity = 1,
+                    isChecked = false,
+                    isActive = true
+                )
             )
-        )
-
-    override suspend fun updateItem(item: ItemEntity) {
-        itemDao.update(item)
+        }
     }
 
-    // Soft delete (catalog delete)
-    suspend fun deactivateItem(item: ItemEntity) {
+    suspend fun updateItem(item: ItemEntity) = itemDao.update(item)
+
+    suspend fun deactivateItem(item: ItemEntity) =
         itemDao.update(item.copy(isActive = false))
-    }
-
-    // (интерфејс legacy)
-    override suspend fun getLists(): List<ListEntity> = emptyList()
-    override suspend fun getItems(listId: Long, kind: Int): List<ItemEntity> = emptyList()
 }
