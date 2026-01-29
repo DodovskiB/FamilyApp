@@ -1,93 +1,54 @@
 package com.example.familyapp.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.familyapp.data.db.AppDatabase
 import com.example.familyapp.data.entity.ItemEntity
-import com.example.familyapp.data.repo.RoomFamilyRepository
-import kotlinx.coroutines.Dispatchers
+import com.example.familyapp.data.repo.FamilyRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.math.max
+
+private const val KIND_LIST = 0
+private const val KIND_CATALOG = 1
 
 class ChecklistViewModel(
-    app: Application,
-    private val listId: Long
-) : AndroidViewModel(app) {
-
-    private val repo = RoomFamilyRepository(
-        AppDatabase.get(app).listDao(),
-        AppDatabase.get(app).itemDao()
-    )
+    private val repo: FamilyRepository,
+    private val listId: Long,
+    private val kind: Int
+) : ViewModel() {
 
     val items: StateFlow<List<ItemEntity>> =
-        repo.observeItems(listId)
+        repo.observeItems(listId, kind)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    fun addItem(title: String) {
+    fun addOrIncrement(title: String) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                repo.addOrIncrementItem(listId, title)
-            }
+            repo.addItem(listId, title, kind)
         }
     }
 
     fun toggleChecked(item: ItemEntity) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                repo.updateItem(item.copy(isChecked = !item.isChecked))
-            }
+            repo.toggleChecked(item.id, !item.checked)
         }
     }
 
     fun incQty(item: ItemEntity) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                repo.updateItem(item.copy(quantity = item.quantity + 1))
-            }
+            repo.setQty(item.id, item.qty + 1)
         }
     }
 
     fun decQty(item: ItemEntity) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val next = item.quantity - 1
-                if (next <= 0) repo.deactivateItem(item)
-                else repo.updateItem(item.copy(quantity = max(1, next)))
-            }
+            repo.setQty(item.id, item.qty - 1) // <=0 ќе го тргне (soft delete)
         }
     }
 
-    fun rename(item: ItemEntity, newTitle: String) {
-        val trimmed = newTitle.trim()
-        if (trimmed.isBlank()) return
+    fun deactivateItem(item: ItemEntity) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                repo.updateItem(item.copy(title = trimmed))
-            }
+            repo.deleteItemSoft(item.id)
         }
-    }
-
-    fun delete(item: ItemEntity) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                repo.deactivateItem(item)
-            }
-        }
-    }
-}
-
-class ChecklistViewModelFactory(
-    private val app: Application,
-    private val listId: Long
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return ChecklistViewModel(app, listId) as T
     }
 }
