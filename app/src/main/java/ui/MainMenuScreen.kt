@@ -1,33 +1,21 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@file:OptIn(
+    androidx.compose.material3.ExperimentalMaterial3Api::class,
+    androidx.compose.foundation.ExperimentalFoundationApi::class
+)
 
 package com.example.familyapp.ui
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Cabin
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,98 +25,71 @@ import com.example.familyapp.data.entity.ListEntity
 @Composable
 fun MainMenuScreen(
     lists: List<ListEntity>,
-    onOpenList: (listId: Long, listName: String) -> Unit,
-    onAddList: (name: String) -> Unit,
-    onRenameList: (listId: Long, newName: String) -> Unit,
-    onDeleteList: (listId: Long) -> Unit,
+    onOpenList: (Long, String) -> Unit,
+    onAddList: (String) -> Unit,
+    onRenameList: (Long, String) -> Unit,
+    onDeleteList: (Long) -> Unit
 ) {
-    var showAdd by rememberSaveable { mutableStateOf(false) }
-    var renameTarget by remember { mutableStateOf<ListEntity?>(null) }
-    var deleteTarget by remember { mutableStateOf<ListEntity?>(null) }
+    var showAddDialog by remember { mutableStateOf(false) }
+    var newListName by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("FamilyApp") })
+            TopAppBar(
+                title = { Text("🏠 MAIN MENU (TEST)") },
+                navigationIcon = {
+                    Icon(Icons.Default.Home, contentDescription = null)
+                }
+            )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAdd = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add list")
+            FloatingActionButton(onClick = { showAddDialog = true }) {
+                Icon(Icons.Default.Add, contentDescription = "Add")
             }
         }
     ) { padding ->
-        if (lists.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Нема листи уште. Додади нова со +")
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(lists, key = { it.id }) { list ->
-                    val protected = isProtectedList(list.name)
-
-                    ListCard(
-                        name = list.name,
-                        subtitle = if (protected) "Default листа" else "Custom листа",
-                        leadingIcon = iconForListName(list.name),
-                        protected = protected,
-                        onClick = { onOpenList(list.id, list.name) },
-                        onRename = { renameTarget = list },
-                        onDelete = { deleteTarget = list }
-                    )
-                }
+        LazyColumn(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+        ) {
+            items(lists) { list ->
+                ListCard(
+                    list = list,
+                    onOpen = { onOpenList(list.id, list.name) },
+                    onRename = { onRenameList(list.id, it) },
+                    onDelete = { onDeleteList(list.id) }
+                )
             }
         }
     }
 
-    if (showAdd) {
-        NameDialog(
-            title = "Нова листа",
-            initial = "",
-            confirmText = "Add",
-            onDismiss = { showAdd = false },
-            onConfirm = { name ->
-                onAddList(name)
-                showAdd = false
-            }
-        )
-    }
-
-    renameTarget?.let { target ->
-        NameDialog(
-            title = "Rename листа",
-            initial = target.name,
-            confirmText = "Save",
-            onDismiss = { renameTarget = null },
-            onConfirm = { newName ->
-                onRenameList(target.id, newName)
-                renameTarget = null
-            }
-        )
-    }
-
-    deleteTarget?.let { target ->
+    if (showAddDialog) {
         AlertDialog(
-            onDismissRequest = { deleteTarget = null },
-            title = { Text("Delete листа") },
-            text = { Text("Сигурно сакаш да ја избришеш „${target.name}“?") },
+            onDismissRequest = { showAddDialog = false },
             confirmButton = {
                 TextButton(onClick = {
-                    onDeleteList(target.id)
-                    deleteTarget = null
-                }) { Text("Delete") }
+                    if (newListName.isNotBlank()) {
+                        onAddList(newListName)
+                        newListName = ""
+                        showAddDialog = false
+                    }
+                }) {
+                    Text("Add")
+                }
             },
             dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) { Text("Cancel") }
+                TextButton(onClick = { showAddDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+            title = { Text("New list") },
+            text = {
+                OutlinedTextField(
+                    value = newListName,
+                    onValueChange = { newListName = it },
+                    label = { Text("List name") }
+                )
             }
         )
     }
@@ -136,109 +97,62 @@ fun MainMenuScreen(
 
 @Composable
 private fun ListCard(
-    name: String,
-    subtitle: String,
-    leadingIcon: @Composable () -> Unit,
-    protected: Boolean,
-    onClick: () -> Unit,
-    onRename: () -> Unit,
+    list: ListEntity,
+    onOpen: () -> Unit,
+    onRename: (String) -> Unit,
     onDelete: () -> Unit
 ) {
+    var showRename by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf(list.name) }
+
     Card(
         modifier = Modifier
+            .padding(8.dp)
             .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .combinedClickable(
+                onClick = onOpen,
+                onLongClick = { showRename = true }
+            )
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier.size(44.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                leadingIcon()
-            }
-
-            Spacer(Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = name,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            IconButton(onClick = onRename) {
-                Icon(Icons.Default.Edit, contentDescription = "Rename")
-            }
-            IconButton(
-                onClick = onDelete,
-                enabled = !protected
-            ) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete")
+            Text(
+                text = list.name,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = null)
             }
         }
     }
-}
 
-@Composable
-private fun NameDialog(
-    title: String,
-    initial: String,
-    confirmText: String,
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit,
-) {
-    var text by rememberSaveable { mutableStateOf(initial) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column {
+    if (showRename) {
+        AlertDialog(
+            onDismissRequest = { showRename = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    onRename(name)
+                    showRename = false
+                }) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRename = false }) {
+                    Text("Cancel")
+                }
+            },
+            title = { Text("Rename list") },
+            text = {
                 OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    singleLine = true,
-                    label = { Text("Име") }
+                    value = name,
+                    onValueChange = { name = it }
                 )
             }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onConfirm(text.trim()) },
-                enabled = text.trim().isNotEmpty()
-            ) { Text(confirmText) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        }
-    )
-}
-
-private fun isProtectedList(name: String): Boolean {
-    val n = name.trim().lowercase()
-    return n == "дома" || n == "vikendica" || n == "викендица" || n == "home"
-}
-
-@Composable
-private fun iconForListName(name: String): @Composable () -> Unit {
-    val n = name.trim().lowercase()
-    return when {
-        n == "дома" || n == "home" -> { { Icon(Icons.Default.Home, contentDescription = null) } }
-        n == "викендица" || n == "vikendica" -> { { Icon(Icons.Default.Cabin, contentDescription = null) } }
-        else -> { { Icon(Icons.Default.List, contentDescription = null) } }
+        )
     }
 }

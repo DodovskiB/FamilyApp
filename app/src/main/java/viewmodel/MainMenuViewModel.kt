@@ -14,24 +14,35 @@ class MainMenuViewModel(
 ) : ViewModel() {
 
     val lists: StateFlow<List<ListEntity>> =
-        repo.observeLists().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+        repo.observeLists()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun ensureDefaults() {
         viewModelScope.launch {
             val existing = repo.getLists()
             if (existing.isNotEmpty()) return@launch
 
-            // ✅ прва Дома, втора Викендица (со sortOrder)
-            repo.addList("Дома", sortOrder = 0)
-            repo.addList("Викендица", sortOrder = 1)
+            // Прва Дома, втора Викендица
+            repo.addList("Дома")
+            repo.addList("Викендица")
         }
     }
 
     fun addList(name: String) {
         viewModelScope.launch {
-            val current = repo.getLists()
-            val order = current.size
-            repo.addList(name, sortOrder = order)
+            repo.addList(name)
         }
+    }
+
+    /**
+     * ✅ Привремено (за да нема "Unresolved reference" и да компајлира проектот).
+     * Во следен чекор ќе ги врземе со Repo/Dao за да работат навистина.
+     */
+    fun renameList(listId: Long, newName: String) {
+        // TODO: ќе имплементираме преку Room (ListDao update)
+    }
+
+    fun deleteList(listId: Long) {
+        // TODO: ќе имплементираме преку Room (ListDao delete или soft-delete)
     }
 }
