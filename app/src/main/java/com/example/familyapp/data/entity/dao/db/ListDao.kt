@@ -10,14 +10,22 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ListDao {
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insert(list: ListEntity): Long
+    // ---------- Read ----------
 
-    // ✅ ОВА го бара RoomFamilyRepository (getAll)
-    @Query("SELECT * FROM lists ORDER BY sortOrder ASC, name COLLATE NOCASE ASC")
+    @Query("SELECT * FROM lists ORDER BY sortOrder ASC")
+    fun observeAll(): Flow<List<ListEntity>>
+
+    @Query("SELECT * FROM lists ORDER BY sortOrder ASC")
     suspend fun getAll(): List<ListEntity>
 
-    // ✅ ОВА го бара MainMenuViewModel (observeLists)
-    @Query("SELECT * FROM lists ORDER BY sortOrder ASC, name COLLATE NOCASE ASC")
-    fun observeAll(): Flow<List<ListEntity>>
+    // ---------- Write ----------
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(entity: ListEntity): Long
+
+    @Query("UPDATE lists SET name = :newName WHERE id = :listId")
+    suspend fun rename(listId: Long, newName: String)
+
+    @Query("DELETE FROM lists WHERE id = :listId")
+    suspend fun delete(listId: Long)
 }

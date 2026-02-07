@@ -15,22 +15,47 @@ class RoomFamilyRepository(
     private val itemDao: ItemDao
 ) : FamilyRepository {
 
-    override suspend fun getLists(): List<ListEntity> = listDao.getAll()
+    // ---------- Lists ----------
 
-    override fun observeLists(): Flow<List<ListEntity>> = listDao.observeAll()
+    override suspend fun getLists(): List<ListEntity> =
+        listDao.getAll()
+
+    override fun observeLists(): Flow<List<ListEntity>> =
+        listDao.observeAll()
 
     override suspend fun addList(name: String, sortOrder: Int): Long {
-        return listDao.insert(ListEntity(name = name.trim(), sortOrder = sortOrder))
+        return listDao.insert(
+            ListEntity(
+                name = name.trim(),
+                sortOrder = sortOrder
+            )
+        )
     }
 
+    override suspend fun renameList(listId: Long, newName: String) {
+        listDao.rename(listId, newName.trim())
+    }
+
+    override suspend fun deleteList(listId: Long) {
+        listDao.delete(listId)
+    }
+
+    // ---------- Items ----------
+
     override fun observeItems(listId: Long, kind: Int): Flow<List<ItemEntity>> {
-        return if (kind == KIND_CATALOG) itemDao.observeCatalog()
-        else itemDao.observeShoppingList(listId)
+        return if (kind == KIND_CATALOG) {
+            itemDao.observeCatalog()
+        } else {
+            itemDao.observeShoppingList(listId)
+        }
     }
 
     override suspend fun getItems(listId: Long, kind: Int): List<ItemEntity> {
-        return if (kind == KIND_CATALOG) itemDao.getCatalog()
-        else itemDao.getShoppingList(listId)
+        return if (kind == KIND_CATALOG) {
+            itemDao.getCatalog()
+        } else {
+            itemDao.getShoppingList(listId)
+        }
     }
 
     override suspend fun addItem(listId: Long, title: String, kind: Int): Long {
@@ -86,7 +111,8 @@ class RoomFamilyRepository(
         }
     }
 
-    override suspend fun updateItem(item: ItemEntity) = itemDao.update(item)
+    override suspend fun updateItem(item: ItemEntity) =
+        itemDao.update(item)
 
     override suspend fun setQty(id: Long, qty: Int) {
         itemDao.setQty(id, qty)

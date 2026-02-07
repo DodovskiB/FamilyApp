@@ -6,10 +6,14 @@ import kotlinx.coroutines.flow.Flow
 
 interface FamilyRepository {
 
+    // ---------- Lists ----------
     suspend fun getLists(): List<ListEntity>
     fun observeLists(): Flow<List<ListEntity>>
     suspend fun addList(name: String, sortOrder: Int = 0): Long
+    suspend fun renameList(listId: Long, newName: String)
+    suspend fun deleteList(listId: Long)
 
+    // ---------- Items ----------
     fun observeItems(listId: Long, kind: Int): Flow<List<ItemEntity>>
     suspend fun getItems(listId: Long, kind: Int): List<ItemEntity>
 
