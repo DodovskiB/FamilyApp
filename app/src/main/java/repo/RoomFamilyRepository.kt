@@ -1,4 +1,4 @@
-package com.example.familyapp.data.repo
+package repo
 
 import com.example.familyapp.data.dao.ItemDao
 import com.example.familyapp.data.dao.ListDao
@@ -6,79 +6,72 @@ import com.example.familyapp.data.entity.ItemEntity
 import com.example.familyapp.data.entity.ListEntity
 import kotlinx.coroutines.flow.Flow
 
-private const val KIND_LIST = 0
-private const val KIND_CATALOG = 1
-private const val CATALOG_LIST_ID = 0L
-
 class RoomFamilyRepository(
     private val listDao: ListDao,
     private val itemDao: ItemDao
 ) : FamilyRepository {
 
-    // ---------- Lists ----------
-
-    override suspend fun getLists(): List<ListEntity> =
-        listDao.getAll()
+    /* ---------- LISTS ---------- */
 
     override fun observeLists(): Flow<List<ListEntity>> =
         listDao.observeAll()
 
-    override suspend fun addList(name: String, sortOrder: Int): Long {
+    override suspend fun getLists(): List<ListEntity> =
+        listDao.getAll()
+
+    override suspend fun addList(
+        name: String,
+        sortOrder: Int
+    ): Long {
         return listDao.insert(
             ListEntity(
-                name = name.trim(),
+                name = name,
                 sortOrder = sortOrder
             )
         )
     }
 
-    override suspend fun renameList(listId: Long, newName: String) {
-        listDao.rename(listId, newName.trim())
+    override suspend fun renameList(
+        listId: Long,
+        newName: String
+    ) {
+        listDao.rename(
+            id = listId,
+            newName = newName
+        )
     }
 
-    override suspend fun deleteList(listId: Long) {
-        listDao.delete(listId)
+    override suspend fun deleteList(
+        listId: Long
+    ) {
+        listDao.deleteById(listId)
     }
 
-    // ---------- Items ----------
+    /* ---------- ITEMS ---------- */
 
-    override fun observeItems(listId: Long, kind: Int): Flow<List<ItemEntity>> {
-        return if (kind == KIND_CATALOG) {
-            itemDao.observeCatalog()
-        } else {
-            itemDao.observeShoppingList(listId)
-        }
-    }
+    override fun observeItems(
+        listId: Long,
+        kind: Int
+    ): Flow<List<ItemEntity>> =
+        itemDao.observeByList(listId)
 
-    override suspend fun getItems(listId: Long, kind: Int): List<ItemEntity> {
-        return if (kind == KIND_CATALOG) {
-            itemDao.getCatalog()
-        } else {
-            itemDao.getShoppingList(listId)
-        }
-    }
+    override suspend fun getItems(
+        listId: Long,
+        kind: Int
+    ): List<ItemEntity> =
+        itemDao.getByList(listId)
 
-    override suspend fun addItem(listId: Long, title: String, kind: Int): Long {
-        val clean = title.trim()
-        if (clean.isBlank()) return -1L
-
-        return if (kind == KIND_CATALOG) {
-            addCatalogIfMissing(clean, category = "Other")
-        } else {
-            addToShoppingList(listId, clean)
-        }
-    }
-
-    private suspend fun addCatalogIfMissing(title: String, category: String): Long {
-        val existing = itemDao.findActiveInCatalog(title)
-        if (existing != null) return existing.id
-
+    override suspend fun addItem(
+        listId: Long,
+        title: String,
+        kind: Int
+    ): Long {
         return itemDao.insert(
             ItemEntity(
-                listId = CATALOG_LIST_ID,
+                listId = listId,
                 title = title,
-                kind = KIND_CATALOG,
-                category = category,
+                kind = kind,
+                category = "Other",
                 qty = 1,
                 checked = false,
                 isActive = true
@@ -86,42 +79,29 @@ class RoomFamilyRepository(
         )
     }
 
-    private suspend fun addToShoppingList(listId: Long, title: String): Long {
-        val cat = itemDao.findActiveInCatalog(title) ?: run {
-            val id = addCatalogIfMissing(title, category = "Other")
-            itemDao.findActiveInCatalog(title) ?: return id
-        }
-
-        val existingInList = itemDao.findActiveInShoppingList(listId, title)
-        return if (existingInList != null) {
-            itemDao.setQty(existingInList.id, existingInList.qty + 1)
-            existingInList.id
-        } else {
-            itemDao.insert(
-                ItemEntity(
-                    listId = listId,
-                    title = title,
-                    kind = KIND_LIST,
-                    category = cat.category,
-                    qty = 1,
-                    checked = false,
-                    isActive = true
-                )
-            )
-        }
-    }
-
-    override suspend fun updateItem(item: ItemEntity) =
+    override suspend fun updateItem(
+        item: ItemEntity
+    ) {
         itemDao.update(item)
-
-    override suspend fun setQty(id: Long, qty: Int) {
-        itemDao.setQty(id, qty)
-        if (qty <= 0) itemDao.setActive(id, false)
     }
 
-    override suspend fun toggleChecked(id: Long, checked: Boolean) =
-        itemDao.setChecked(id, checked)
+    override suspend fun setQty(
+        id: Long,
+        qty: Int
+    ) {
+        itemDao.setQty(id, qty)
+    }
 
-    override suspend fun deleteItemSoft(id: Long) =
+    override suspend fun toggleChecked(
+        id: Long,
+        checked: Boolean
+    ) {
+        itemDao.setChecked(id, checked)
+    }
+
+    override suspend fun deleteItemSoft(
+        id: Long
+    ) {
         itemDao.setActive(id, false)
+    }
 }

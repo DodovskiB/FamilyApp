@@ -10,22 +10,18 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ListDao {
 
-    // ---------- Read ----------
-
     @Query("SELECT * FROM lists ORDER BY sortOrder ASC")
     fun observeAll(): Flow<List<ListEntity>>
 
     @Query("SELECT * FROM lists ORDER BY sortOrder ASC")
     suspend fun getAll(): List<ListEntity>
 
-    // ---------- Write ----------
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: ListEntity): Long
 
-    @Query("UPDATE lists SET name = :newName WHERE id = :listId")
-    suspend fun rename(listId: Long, newName: String)
+    @Query("UPDATE lists SET name = :newName WHERE id = :id")
+    suspend fun rename(id: Long, newName: String)
 
-    @Query("DELETE FROM lists WHERE id = :listId")
-    suspend fun delete(listId: Long)
+    @Query("DELETE FROM lists WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }

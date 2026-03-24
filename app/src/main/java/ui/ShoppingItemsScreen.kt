@@ -9,27 +9,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.familyapp.viewmodel.MainMenuViewModel
 
 @Composable
-fun MainMenuScreen(
-    viewModel: MainMenuViewModel,
-    onShoppingList: () -> Unit,
-    onShoppingItems: () -> Unit
+fun ShoppingItemsScreen(
+    onBack: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("FamilyApp")
-
-        Button(onClick = onShoppingList) {
-            Text("Shopping List")
-        }
-
-        Button(onClick = onShoppingItems) {
-            Text("Shopping Items")
-        }
+        Text("Shopping Items (placeholder)")
+        Button(onClick = onBack) { Text("Back") }
     }
 }
