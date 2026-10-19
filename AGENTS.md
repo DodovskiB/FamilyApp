@@ -35,3 +35,9 @@ but do not display Tap to open / Hold for actions helper text below each name.
 
 Keep the home screen free of a New list name input/Add form. New list belongs in
 the upper-left navigation menu alongside Shopping lists and Item list.
+
+## Initial lists
+
+The owner approved Home, Weekend House and Vacation as default lists for empty
+installations. Initialize once; preserve existing lists and do not recreate defaults
+if the owner subsequently deletes them. This supersedes the earlier undecided default-list policy.

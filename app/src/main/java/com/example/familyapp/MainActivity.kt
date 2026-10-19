@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import com.example.familyapp.data.DefaultShoppingLists
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.familyapp.data.db.AppDatabase
 import com.example.familyapp.data.photo.ProductPhotoStore
@@ -19,6 +21,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             FamilyAppTheme {
                 val db = AppDatabase.getInstance(applicationContext)
+                LaunchedEffect(db) {
+                    DefaultShoppingLists.initialize(db, getSharedPreferences("familyapp_setup", MODE_PRIVATE))
+                }
                 val repo = remember(db) { RoomFamilyRepository(db, ProductPhotoStore(applicationContext)) }
                 val mainMenuViewModel: MainMenuViewModel = viewModel(
                     factory = MainMenuViewModelFactory(repository = repo)

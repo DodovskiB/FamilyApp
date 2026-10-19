@@ -143,3 +143,12 @@ the editor can also remove it. Store one optional http/https link per catalog pr
 Do not auto-fetch previews or launch websites except on an explicit Open link action.
 The home screen has no new-list form; use hamburger -> New list -> name/Create.
 See docs/LINKS_AND_MENU.md for implementation and verification.
+
+## Default shopping lists — approved 2026-10-20
+
+On first setup with an empty database, create Home, Weekend House and Vacation.
+Apply this to new installs and previously empty installations such as the owner's
+Galaxy Note 20. Retain any existing non-empty list set rather than adding duplicates.
+Record one-time completion in private preferences. If the owner later deletes all
+lists, do not recreate them on restart. Products are not copied or synchronized
+between devices by this change. No Room schema change is required.
