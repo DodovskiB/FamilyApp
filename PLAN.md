@@ -124,3 +124,13 @@ purchased-state controls remain usable directly.
 - Allow selecting a suggestion or creating a product using the search text as the initial name.
 - Preserve existing lists/products and long-press contextual actions.
 - Username and settings are future menu destinations. No authentication/profile/settings system has been approved or implemented in this change.
+
+## Product photos and English list labels — 2026-10-20
+
+Approved by owner: attach a product photo from camera or gallery. Implemented through
+long-press product actions, with local private copies and previews in catalog/search/lists.
+See docs/PRODUCT_PHOTOS.md for lifecycle, migrations and verification limits.
+
+Translate existing Doma, Vikendica and Odmor (including common Cyrillic equivalents)
+to Home, Weekend House and Vacation once, preserving contents. Home list cards show
+only their names; tap opens and hold exposes actions. Do not restore hint subtitles.

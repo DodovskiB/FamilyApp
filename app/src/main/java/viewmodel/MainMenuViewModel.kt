@@ -1,5 +1,6 @@
 package com.example.familyapp.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.familyapp.data.entity.ItemEntity
@@ -30,6 +31,22 @@ class MainMenuViewModel(
 
     fun clearCatalogError() {
         _catalogError.value = null
+    }
+
+    fun photoLaunchFailed() {
+        _catalogError.value = "Could not open the camera or gallery. Please try again."
+    }
+
+    fun attachCatalogPhoto(id: Long, uri: Uri, onFinished: () -> Unit = {}) {
+        if (_catalogSaving.value) { onFinished(); return }
+        changeCatalog({}) {
+            try { repository.attachCatalogPhoto(id, uri) }
+            finally { onFinished() }
+        }
+    }
+
+    fun removeCatalogPhoto(id: Long) = changeCatalog({}) {
+        repository.removeCatalogPhoto(id)
     }
 
     fun saveCatalogItem(

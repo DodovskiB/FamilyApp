@@ -70,7 +70,6 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit) {
                         }
                     ).padding(16.dp)) {
                         Text(list.name, style = MaterialTheme.typography.titleLarge)
-                        Text("Tap to open · Hold for actions")
                     }
                 }
             }
@@ -141,6 +140,7 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name: String, onBack: () -> Unit) {
     val itemFlow = remember(viewModel, listId) { viewModel.listItems(listId) }
@@ -148,13 +148,18 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
     val catalog by viewModel.catalogItems.collectAsState()
     val saving by viewModel.listSaving.collectAsState()
     val error by viewModel.listError.collectAsState()
+    val photoSaving by viewModel.catalogSaving.collectAsState()
+    val photoError by viewModel.catalogError.collectAsState()
+    val photoActions = rememberProductPhotoActions(viewModel)
+    var itemActionsId by rememberSaveable(listId) { mutableStateOf<Long?>(null) }
+    var viewingPhotoId by rememberSaveable(listId) { mutableStateOf<Long?>(null) }
     var pickerOpen by rememberSaveable(listId) { mutableStateOf(false) }
     var search by rememberSaveable(listId) { mutableStateOf("") }
     var creating by rememberSaveable(listId) { mutableStateOf(false) }
     var title by rememberSaveable(listId) { mutableStateOf("") }
     var category by rememberSaveable(listId) { mutableStateOf("") }
     var removingId by rememberSaveable(listId) { mutableStateOf<Long?>(null) }
-    BackHandler(enabled = !pickerOpen && removingId == null) { onBack() }
+    BackHandler(enabled = !pickerOpen && removingId == null && itemActionsId == null && viewingPhotoId == null) { onBack() }
 
     Column(
         Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp),
@@ -170,16 +175,27 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
         }
         Text(name, style = MaterialTheme.typography.headlineMedium)
         Text("${entries.count { it.checked }} of ${entries.size} purchased")
+        Text("Hold a product for photos or removal.")
         if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+        if (photoError != null) Text(photoError!!, color = MaterialTheme.colorScheme.error)
         if (entries.isEmpty()) Text("This list is empty. Add a product from your catalog.")
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(entries, key = { it.id }) { item ->
                 Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(12.dp)) {
+                    Column(Modifier.fillMaxWidth().combinedClickable(
+                        enabled = !saving && !photoSaving,
+                        onClick = {}, onLongClickLabel = "Item actions",
+                        onLongClick = {
+                            viewModel.clearCatalogError()
+                            viewModel.clearListError()
+                            itemActionsId = item.id
+                        }
+                    ).padding(12.dp)) {
                         Row(Modifier.fillMaxWidth()) {
                             Checkbox(checked = item.checked, enabled = !saving,
                                 modifier = Modifier.semantics { contentDescription = "Purchased: ${item.title}" },
                                 onCheckedChange = { viewModel.checkItem(item.id, it) })
+                            ProductPhoto(catalog.firstOrNull { it.id == item.catalogItemId }?.photoFileName, item.title)
                             Column(Modifier.weight(1f).padding(top = 8.dp)) {
                                 Text(item.title, style = MaterialTheme.typography.titleMedium,
                                     textDecoration = if (item.checked) TextDecoration.LineThrough else TextDecoration.None)
@@ -196,10 +212,6 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                                     modifier = Modifier.semantics { contentDescription = "Increase quantity: ${item.title}" },
                                     onClick = { viewModel.changeQuantity(item.id, 1) }) { Text("+") }
                             }
-                            TextButton(enabled = !saving, onClick = {
-                                viewModel.clearListError()
-                                removingId = item.id
-                            }) { Text("Remove") }
                         }
                     }
                 }
@@ -225,11 +237,14 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                     else if (suggestions.isEmpty()) Text("No matching products. You can create one below.")
                     LazyColumn(Modifier.heightIn(max = 300.dp)) {
                         items(suggestions, key = { it.id }) { product ->
-                            Column(Modifier.fillMaxWidth().clickable(enabled = !saving) {
+                            Row(Modifier.fillMaxWidth().clickable(enabled = !saving) {
                                 viewModel.addProductToList(listId, product.id) { pickerOpen = false }
                             }.padding(vertical = 12.dp)) {
-                                Text(product.title, style = MaterialTheme.typography.titleMedium)
-                                Text(product.category)
+                                ProductPhoto(product.photoFileName, product.title)
+                                Column(Modifier.weight(1f).padding(start = 8.dp)) {
+                                    Text(product.title, style = MaterialTheme.typography.titleMedium)
+                                    Text(product.category)
+                                }
                             }
                         }
                     }
@@ -279,6 +294,26 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                 TextButton(enabled = !saving, onClick = { creating = false }) { Text("Cancel") }
             }
         )
+    }
+    entries.firstOrNull { it.id == itemActionsId }?.let { item ->
+        AlertDialog(onDismissRequest = { itemActionsId = null }, title = { Text(item.title) },
+            text = {
+                Column {
+                    catalog.firstOrNull { it.id == item.catalogItemId }?.let { product ->
+                        PhotoMenuOptions(product, photoActions, !saving && !photoSaving,
+                            onClose = { itemActionsId = null }, onView = { viewingPhotoId = product.id },
+                            onRemove = { viewModel.removeCatalogPhoto(product.id) })
+                    }
+                    TextButton(enabled = !saving, modifier = Modifier.fillMaxWidth(), onClick = {
+                        itemActionsId = null
+                        removingId = item.id
+                    }) { Text("Remove from list") }
+                }
+            },
+            confirmButton = { TextButton(onClick = { itemActionsId = null }) { Text("Cancel") } })
+    }
+    catalog.firstOrNull { it.id == viewingPhotoId }?.let { product ->
+        ProductPhotoDialog(product) { viewingPhotoId = null }
     }
     entries.firstOrNull { it.id == removingId }?.let { item ->
         AlertDialog(

@@ -25,3 +25,8 @@ upper-left menu, Item list. Add product shows a search field with live title-pre
 suggestions (case-insensitive; match the alphabet used in stored product names).
 Empty search shows a prompt; unmatched text can be used to create a new product.
 Do not add a separate visible Shopping Items tile to the home screen.
+
+## List-card labels
+
+Show only the list name on a home list card. Keep tap-to-open and long-press actions,
+but do not display Tap to open / Hold for actions helper text below each name.

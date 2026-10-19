@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.familyapp.data.db.AppDatabase
+import com.example.familyapp.data.photo.ProductPhotoStore
 import com.example.familyapp.ui.FamilyAppRoot
 import com.example.familyapp.ui.theme.FamilyAppTheme
 import com.example.familyapp.viewmodel.MainMenuViewModel
@@ -18,7 +19,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             FamilyAppTheme {
                 val db = AppDatabase.getInstance(applicationContext)
-                val repo = remember(db) { RoomFamilyRepository(db) }
+                val repo = remember(db) { RoomFamilyRepository(db, ProductPhotoStore(applicationContext)) }
                 val mainMenuViewModel: MainMenuViewModel = viewModel(
                     factory = MainMenuViewModelFactory(repository = repo)
                 )

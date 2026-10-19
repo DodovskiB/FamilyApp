@@ -1,13 +1,17 @@
 package repo
 
+import android.net.Uri
 import androidx.room.withTransaction
 import com.example.familyapp.data.db.AppDatabase
 import com.example.familyapp.data.entity.CatalogItemEntity
 import com.example.familyapp.data.entity.ItemEntity
 import com.example.familyapp.data.entity.ListEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.example.familyapp.data.photo.ProductPhotoStore
 
-class RoomFamilyRepository(private val db: AppDatabase) : FamilyRepository {
+class RoomFamilyRepository(private val db: AppDatabase, private val photos: ProductPhotoStore? = null) : FamilyRepository {
     private val listDao = db.listDao()
     private val itemDao = db.itemDao()
     private val catalogItemDao = db.catalogItemDao()
@@ -23,15 +27,42 @@ class RoomFamilyRepository(private val db: AppDatabase) : FamilyRepository {
 
     override suspend fun updateCatalogItem(item: CatalogItemEntity) {
         require(item.title.isNotBlank()) { "Product name is required" }
-        catalogItemDao.update(
-            item.copy(title = item.title.trim(), category = item.category.trim().ifBlank { "Other" })
-        )
+        catalogItemDao.updateDetails(item.id, item.title.trim(), item.category.trim().ifBlank { "Other" })
     }
 
-    override suspend fun deleteCatalogItem(id: Long) = db.withTransaction {
-        // Existing list entries retain their name, quantity and purchased state.
-        itemDao.clearCatalogReference(id)
-        catalogItemDao.deleteById(id)
+    override suspend fun deleteCatalogItem(id: Long) {
+        val oldPhoto = db.withTransaction {
+            val old = catalogItemDao.getById(id)?.photoFileName
+            itemDao.clearCatalogReference(id)
+            catalogItemDao.deleteById(id)
+            old
+        }
+        withContext(Dispatchers.IO) { photos?.delete(oldPhoto) }
+    }
+
+    override suspend fun attachCatalogPhoto(id: Long, uri: Uri) = withContext(Dispatchers.IO) {
+        val store = checkNotNull(photos)
+        val imported = store.importPhoto(uri)
+        try {
+            val oldPhoto = db.withTransaction {
+                val product = requireNotNull(catalogItemDao.getById(id)) { "Product no longer exists" }
+                catalogItemDao.setPhoto(id, imported)
+                product.photoFileName
+            }
+            store.delete(oldPhoto)
+        } catch (error: Exception) {
+            store.delete(imported)
+            throw error
+        }
+    }
+
+    override suspend fun removeCatalogPhoto(id: Long) {
+        val oldPhoto = db.withTransaction {
+            val product = requireNotNull(catalogItemDao.getById(id))
+            catalogItemDao.setPhoto(id, null)
+            product.photoFileName
+        }
+        withContext(Dispatchers.IO) { photos?.delete(oldPhoto) }
     }
 
     override suspend fun addCatalogItemToList(listId: Long, catalogItemId: Long): Long =

@@ -1,5 +1,7 @@
 package repo
 
+import android.net.Uri
+
 import kotlinx.coroutines.flow.Flow
 import com.example.familyapp.data.entity.ItemEntity
 import com.example.familyapp.data.entity.ListEntity
@@ -14,6 +16,10 @@ interface FamilyRepository {
     suspend fun updateCatalogItem(item: CatalogItemEntity)
 
     suspend fun deleteCatalogItem(id: Long)
+
+    suspend fun attachCatalogPhoto(id: Long, uri: Uri)
+
+    suspend fun removeCatalogPhoto(id: Long)
 
     suspend fun addCatalogItemToList(listId: Long, catalogItemId: Long): Long
 

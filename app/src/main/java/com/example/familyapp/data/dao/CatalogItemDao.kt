@@ -15,6 +15,12 @@ interface CatalogItemDao {
     @Query("SELECT * FROM catalog_items WHERE id = :id")
     suspend fun getById(id: Long): CatalogItemEntity?
 
+    @Query("UPDATE catalog_items SET title = :title, category = :category WHERE id = :id")
+    suspend fun updateDetails(id: Long, title: String, category: String)
+
+    @Query("UPDATE catalog_items SET photoFileName = :fileName WHERE id = :id")
+    suspend fun setPhoto(id: Long, fileName: String?)
+
     @Insert
     suspend fun insert(item: CatalogItemEntity): Long
 

@@ -35,6 +35,8 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
     val products by viewModel.catalogItems.collectAsState()
     val saving by viewModel.catalogSaving.collectAsState()
     val error by viewModel.catalogError.collectAsState()
+    val photoActions = rememberProductPhotoActions(viewModel)
+    var viewingPhotoId by rememberSaveable { mutableStateOf<Long?>(null) }
     var editorOpen by rememberSaveable { mutableStateOf(false) }
     var editingId by rememberSaveable { mutableStateOf<Long?>(null) }
     var title by rememberSaveable { mutableStateOf("") }
@@ -42,7 +44,7 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
     var actionsId by rememberSaveable { mutableStateOf<Long?>(null) }
     var deletingId by rememberSaveable { mutableStateOf<Long?>(null) }
 
-    BackHandler(enabled = !editorOpen && actionsId == null && deletingId == null) { onBack() }
+    BackHandler(enabled = !editorOpen && actionsId == null && deletingId == null && viewingPhotoId == null) { onBack() }
 
     Column(
         modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp),
@@ -59,7 +61,8 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
             }, enabled = !saving) { Text("Add product") }
         }
         Text("Shopping Items", style = MaterialTheme.typography.headlineMedium)
-        Text("Hold a product to edit or delete it.")
+        Text("Hold a product for photos, editing or deletion.")
+        if (error != null && !editorOpen && deletingId == null) Text(error!!, color = MaterialTheme.colorScheme.error)
         if (products.isEmpty()) Text("No products yet. Add your first product.")
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -81,6 +84,7 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
                             onLongClick = { actionsId = product.id }
                         ).padding(16.dp)
                     ) {
+                        ProductPhoto(product.photoFileName, product.title)
                         Text(product.title, style = MaterialTheme.typography.titleMedium)
                         Text(product.category, style = MaterialTheme.typography.bodyMedium)
                     }
@@ -127,26 +131,28 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
         AlertDialog(
             onDismissRequest = { actionsId = null },
             title = { Text(product.title) },
-            text = { Text(product.category) },
-            confirmButton = {
-                TextButton(onClick = {
-                    actionsId = null
-                    editingId = product.id
-                    title = product.title
-                    category = product.category
-                    viewModel.clearCatalogError()
-                    editorOpen = true
-                }) { Text("Edit") }
-            },
-            dismissButton = {
-                Row {
-                    TextButton(onClick = { actionsId = null }) { Text("Cancel") }
-                    TextButton(onClick = {
+            text = {
+                Column {
+                    TextButton(enabled = !saving, modifier = Modifier.fillMaxWidth(), onClick = {
+                        actionsId = null
+                        editingId = product.id
+                        title = product.title
+                        category = product.category
+                        viewModel.clearCatalogError()
+                        editorOpen = true
+                    }) { Text("Edit") }
+                    PhotoMenuOptions(product, photoActions, !saving, onClose = { actionsId = null },
+                        onView = { viewingPhotoId = product.id },
+                        onRemove = { viewModel.removeCatalogPhoto(product.id) })
+                    TextButton(enabled = !saving, modifier = Modifier.fillMaxWidth(), onClick = {
                         actionsId = null
                         viewModel.clearCatalogError()
                         deletingId = product.id
                     }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
                 }
+            },
+            confirmButton = {
+                TextButton(onClick = { actionsId = null }) { Text("Cancel") }
             }
         )
     }
@@ -170,5 +176,8 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
                 TextButton(enabled = !saving, onClick = { deletingId = null }) { Text("Cancel") }
             }
         )
+    }
+    products.firstOrNull { it.id == viewingPhotoId }?.let { product ->
+        ProductPhotoDialog(product) { viewingPhotoId = null }
     }
 }

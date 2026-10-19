@@ -70,7 +70,8 @@ class ShoppingListUiTest {
         compose.waitUntil(5_000) { !vm.listSaving.value }
         compose.waitForIdle()
         compose.onNodeWithContentDescription("Purchased: Milk").assertIsOn()
-        compose.onNodeWithText("Remove", substring = false).performClick()
+        compose.onNodeWithText("Milk", substring = false).performTouchInput { longClick() }
+        compose.onNodeWithText("Remove from list", substring = false).performClick()
         compose.onNodeWithText("Remove product?").assertIsDisplayed()
         compose.onNodeWithText("Cancel", substring = false).performClick()
         compose.onNodeWithText("Milk", substring = false).assertIsDisplayed()
