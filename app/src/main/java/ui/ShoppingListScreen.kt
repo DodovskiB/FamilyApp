@@ -7,6 +7,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -19,7 +21,7 @@ import com.example.familyapp.viewmodel.MainMenuViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ShoppingListScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
+fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit) {
     val lists by viewModel.lists.collectAsState()
     val saving by viewModel.listSaving.collectAsState()
     val error by viewModel.listError.collectAsState()
@@ -35,12 +37,11 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
         ShoppingListDetails(viewModel, selected.id, selected.name) { selectedListId = null }
         return
     }
-    BackHandler { onBack() }
     Column(
         Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        TextButton(onClick = onBack) { Text("Back") }
+        IconButton(onClick = onOpenMenu) { Icon(Icons.Default.Menu, contentDescription = "Open menu") }
         Text("Shopping Lists", style = MaterialTheme.typography.headlineMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
@@ -148,6 +149,7 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
     val saving by viewModel.listSaving.collectAsState()
     val error by viewModel.listError.collectAsState()
     var pickerOpen by rememberSaveable(listId) { mutableStateOf(false) }
+    var search by rememberSaveable(listId) { mutableStateOf("") }
     var creating by rememberSaveable(listId) { mutableStateOf(false) }
     var title by rememberSaveable(listId) { mutableStateOf("") }
     var category by rememberSaveable(listId) { mutableStateOf("") }
@@ -162,6 +164,7 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
             TextButton(onClick = onBack) { Text("Back to lists") }
             Button(enabled = !saving, onClick = {
                 viewModel.clearListError()
+                search = ""
                 pickerOpen = true
             }) { Text("Add product") }
         }
@@ -210,10 +213,18 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
             title = { Text("Choose a product") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Adding the same product again increases its quantity by 1.")
+                    OutlinedTextField(
+                        value = search, onValueChange = { search = it },
+                        label = { Text("Search products") }, singleLine = true,
+                        modifier = Modifier.fillMaxWidth(), enabled = !saving
+                    )
+                    val suggestions = if (search.isBlank()) emptyList() else
+                        catalog.filter { it.title.startsWith(search.trim(), ignoreCase = true) }
                     if (catalog.isEmpty()) Text("Your catalog is empty. Create a product below.")
+                    else if (search.isBlank()) Text("Type a product name to see suggestions.")
+                    else if (suggestions.isEmpty()) Text("No matching products. You can create one below.")
                     LazyColumn(Modifier.heightIn(max = 300.dp)) {
-                        items(catalog, key = { it.id }) { product ->
+                        items(suggestions, key = { it.id }) { product ->
                             Column(Modifier.fillMaxWidth().clickable(enabled = !saving) {
                                 viewModel.addProductToList(listId, product.id) { pickerOpen = false }
                             }.padding(vertical = 12.dp)) {
@@ -228,7 +239,7 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
             confirmButton = {
                 TextButton(enabled = !saving, onClick = {
                     viewModel.clearListError()
-                    title = ""
+                    title = search.trim()
                     category = ""
                     creating = true
                 }) { Text("New product") }

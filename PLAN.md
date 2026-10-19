@@ -114,3 +114,13 @@ persistent Rename/Delete/Actions buttons below each entry. Shopping list cards o
 on a normal tap and expose Rename/Delete on long press. Preserve this convention for
 future contextual actions. Primary entry/navigation controls and direct quantity or
 purchased-state controls remain usable directly.
+
+## Home and product lookup — owner request, 2026-10-20
+
+- Open directly on existing shopping lists (e.g. Doma, Vikendica, Odmor), without the old two-button main menu.
+- Keep the catalog behind the upper-left menu as Item list.
+- Add product uses prefix search with case-insensitive live suggestions from saved products.
+- Do not display the full catalog in an empty search; prompt for a name first.
+- Allow selecting a suggestion or creating a product using the search text as the initial name.
+- Preserve existing lists/products and long-press contextual actions.
+- Username and settings are future menu destinations. No authentication/profile/settings system has been approved or implemented in this change.

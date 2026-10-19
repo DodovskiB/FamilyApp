@@ -17,3 +17,11 @@ uninstall the owner's app or use the Gradle connected test runner on this phone:
 its cleanup previously removed the target app. Invoke instrumentation directly.
 
 Do not push to GitHub without explicit owner approval for the changes being pushed.
+
+## Home and catalog navigation
+
+The app opens on saved shopping lists. Catalog maintenance is accessed through the
+upper-left menu, Item list. Add product shows a search field with live title-prefix
+suggestions (case-insensitive; match the alphabet used in stored product names).
+Empty search shows a prompt; unmatched text can be used to create a new product.
+Do not add a separate visible Shopping Items tile to the home screen.

@@ -33,7 +33,7 @@ class ShoppingListUiTest {
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
         runBlocking { RoomFamilyRepository(db).addCatalogItem("Milk", "Dairy") }
         vm = ViewModelProvider(store, MainMenuViewModelFactory(RoomFamilyRepository(db)))[MainMenuViewModel::class.java]
-        compose.setContent { MaterialTheme { ShoppingListScreen(vm, onBack = {}) } }
+        compose.setContent { MaterialTheme { ShoppingListScreen(vm, onOpenMenu = {}) } }
     }
 
     @After
@@ -56,7 +56,8 @@ class ShoppingListUiTest {
         compose.waitUntil(5_000) { vm.lists.value.singleOrNull()?.name == "Holiday" }
         compose.onNodeWithText("Holiday", substring = false).performClick()
         compose.onNodeWithText("Add product", substring = false).performClick()
-        compose.onNodeWithText("Milk", substring = false).performClick()
+        compose.onNodeWithText("Search products").performTextInput("Milk")
+        compose.onNode(hasText("Milk", substring = false) and !hasSetTextAction()).performClick()
         compose.waitUntil(5_000) {
             compose.onAllNodesWithContentDescription("Increase quantity: Milk").fetchSemanticsNodes().isNotEmpty()
         }
