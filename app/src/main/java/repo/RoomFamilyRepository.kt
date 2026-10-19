@@ -5,11 +5,35 @@ import com.example.familyapp.data.dao.ListDao
 import com.example.familyapp.data.entity.ItemEntity
 import com.example.familyapp.data.entity.ListEntity
 import kotlinx.coroutines.flow.Flow
+import com.example.familyapp.data.dao.CatalogItemDao
+import com.example.familyapp.data.entity.CatalogItemEntity
 
 class RoomFamilyRepository(
     private val listDao: ListDao,
-    private val itemDao: ItemDao
+    private val itemDao: ItemDao,
+    private val catalogItemDao: CatalogItemDao
 ) : FamilyRepository {
+
+    override fun observeCatalogItems(): Flow<List<CatalogItemEntity>> =
+        catalogItemDao.observeAll()
+
+    override suspend fun addCatalogItem(title: String, category: String): Long {
+        require(title.isNotBlank()) { "Product name is required" }
+        return catalogItemDao.insert(
+            CatalogItemEntity(title = title.trim(), category = category.trim().ifBlank { "Other" })
+        )
+    }
+
+    override suspend fun updateCatalogItem(item: CatalogItemEntity) {
+        require(item.title.isNotBlank()) { "Product name is required" }
+        catalogItemDao.update(
+            item.copy(title = item.title.trim(), category = item.category.trim().ifBlank { "Other" })
+        )
+    }
+
+    override suspend fun deleteCatalogItem(id: Long) {
+        catalogItemDao.deleteById(id)
+    }
 
     /* ---------- LISTS ---------- */
 

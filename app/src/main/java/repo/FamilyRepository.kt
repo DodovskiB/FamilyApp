@@ -3,8 +3,17 @@ package repo
 import kotlinx.coroutines.flow.Flow
 import com.example.familyapp.data.entity.ItemEntity
 import com.example.familyapp.data.entity.ListEntity
+import com.example.familyapp.data.entity.CatalogItemEntity
 
 interface FamilyRepository {
+
+    fun observeCatalogItems(): Flow<List<CatalogItemEntity>>
+
+    suspend fun addCatalogItem(title: String, category: String): Long
+
+    suspend fun updateCatalogItem(item: CatalogItemEntity)
+
+    suspend fun deleteCatalogItem(id: Long)
 
     /* ---------- LISTS ---------- */
 

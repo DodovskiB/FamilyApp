@@ -32,7 +32,8 @@ class MainActivity : ComponentActivity() {
                 // REPO
                 val repo = RoomFamilyRepository(
                     listDao = db.listDao(),
-                    itemDao = db.itemDao()
+                    itemDao = db.itemDao(),
+                    catalogItemDao = db.catalogItemDao()
                 )
 
                 // VIEWMODEL
@@ -58,6 +59,7 @@ class MainActivity : ComponentActivity() {
 
                     Screen.ShoppingItems -> {
                         ShoppingItemsScreen(
+                            viewModel = mainMenuViewModel,
                             onBack = { screen = Screen.MainMenu }
                         )
                     }
