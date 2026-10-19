@@ -1,21 +1,18 @@
 package repo
 
-import com.example.familyapp.data.dao.ItemDao
-import com.example.familyapp.data.dao.ListDao
+import androidx.room.withTransaction
+import com.example.familyapp.data.db.AppDatabase
+import com.example.familyapp.data.entity.CatalogItemEntity
 import com.example.familyapp.data.entity.ItemEntity
 import com.example.familyapp.data.entity.ListEntity
 import kotlinx.coroutines.flow.Flow
-import com.example.familyapp.data.dao.CatalogItemDao
-import com.example.familyapp.data.entity.CatalogItemEntity
 
-class RoomFamilyRepository(
-    private val listDao: ListDao,
-    private val itemDao: ItemDao,
-    private val catalogItemDao: CatalogItemDao
-) : FamilyRepository {
+class RoomFamilyRepository(private val db: AppDatabase) : FamilyRepository {
+    private val listDao = db.listDao()
+    private val itemDao = db.itemDao()
+    private val catalogItemDao = db.catalogItemDao()
 
-    override fun observeCatalogItems(): Flow<List<CatalogItemEntity>> =
-        catalogItemDao.observeAll()
+    override fun observeCatalogItems(): Flow<List<CatalogItemEntity>> = catalogItemDao.observeAll()
 
     override suspend fun addCatalogItem(title: String, category: String): Long {
         require(title.isNotBlank()) { "Product name is required" }
@@ -31,101 +28,86 @@ class RoomFamilyRepository(
         )
     }
 
-    override suspend fun deleteCatalogItem(id: Long) {
+    override suspend fun deleteCatalogItem(id: Long) = db.withTransaction {
+        // Existing list entries retain their name, quantity and purchased state.
+        itemDao.clearCatalogReference(id)
         catalogItemDao.deleteById(id)
     }
 
-    /* ---------- LISTS ---------- */
+    override suspend fun addCatalogItemToList(listId: Long, catalogItemId: Long): Long =
+        db.withTransaction {
+            requireNotNull(listDao.getById(listId)) { "List no longer exists" }
+            val product = requireNotNull(catalogItemDao.getById(catalogItemId)) { "Product no longer exists" }
+            val existing = itemDao.findActiveCatalogItem(listId, catalogItemId)
+            if (existing != null) {
+                itemDao.changeQty(existing.id, 1)
+                existing.id
+            } else {
+                itemDao.insert(
+                    ItemEntity(
+                        listId = listId, title = product.title, kind = 0,
+                        category = product.category, qty = 1, checked = false,
+                        isActive = true, catalogItemId = product.id
+                    )
+                )
+            }
+        }
 
-    override fun observeLists(): Flow<List<ListEntity>> =
-        listDao.observeAll()
+    override suspend fun createProductForList(listId: Long, title: String, category: String): Long =
+        db.withTransaction {
+            requireNotNull(listDao.getById(listId)) { "List no longer exists" }
+            val productId = addCatalogItem(title, category)
+            addCatalogItemToList(listId, productId)
+        }
 
-    override suspend fun getLists(): List<ListEntity> =
-        listDao.getAll()
+    override fun observeLists(): Flow<List<ListEntity>> = listDao.observeAll()
+    override suspend fun getLists(): List<ListEntity> = listDao.getAll()
 
-    override suspend fun addList(
-        name: String,
-        sortOrder: Int
-    ): Long {
-        return listDao.insert(
-            ListEntity(
-                name = name,
-                sortOrder = sortOrder
-            )
-        )
+    override suspend fun addList(name: String, sortOrder: Int): Long {
+        require(name.isNotBlank()) { "List name is required" }
+        return listDao.insert(ListEntity(name = name.trim(), sortOrder = sortOrder))
     }
 
-    override suspend fun renameList(
-        listId: Long,
-        newName: String
-    ) {
-        listDao.rename(
-            id = listId,
-            newName = newName
-        )
+    override suspend fun renameList(listId: Long, newName: String) {
+        require(newName.isNotBlank()) { "List name is required" }
+        listDao.rename(listId, newName.trim())
     }
 
-    override suspend fun deleteList(
-        listId: Long
-    ) {
+    override suspend fun deleteList(listId: Long) = db.withTransaction {
+        itemDao.deleteByList(listId)
         listDao.deleteById(listId)
     }
 
-    /* ---------- ITEMS ---------- */
+    override fun observeItems(listId: Long, kind: Int): Flow<List<ItemEntity>> =
+        itemDao.observeByList(listId, kind)
 
-    override fun observeItems(
-        listId: Long,
-        kind: Int
-    ): Flow<List<ItemEntity>> =
-        itemDao.observeByList(listId)
+    override suspend fun getItems(listId: Long, kind: Int): List<ItemEntity> =
+        itemDao.getByList(listId, kind)
 
-    override suspend fun getItems(
-        listId: Long,
-        kind: Int
-    ): List<ItemEntity> =
-        itemDao.getByList(listId)
-
-    override suspend fun addItem(
-        listId: Long,
-        title: String,
-        kind: Int
-    ): Long {
-        return itemDao.insert(
-            ItemEntity(
-                listId = listId,
-                title = title,
-                kind = kind,
-                category = "Other",
-                qty = 1,
-                checked = false,
-                isActive = true
-            )
+    override suspend fun addItem(listId: Long, title: String, kind: Int): Long = db.withTransaction {
+        requireNotNull(listDao.getById(listId)) { "List no longer exists" }
+        require(title.isNotBlank()) { "Product name is required" }
+        itemDao.insert(
+            ItemEntity(listId = listId, title = title.trim(), kind = kind,
+                category = "Other", qty = 1, checked = false, isActive = true)
         )
     }
 
-    override suspend fun updateItem(
-        item: ItemEntity
-    ) {
+    override suspend fun updateItem(item: ItemEntity) {
+        require(item.qty >= 1 && item.title.isNotBlank())
         itemDao.update(item)
     }
 
-    override suspend fun setQty(
-        id: Long,
-        qty: Int
-    ) {
+    override suspend fun setQty(id: Long, qty: Int) {
+        require(qty >= 1)
         itemDao.setQty(id, qty)
     }
 
-    override suspend fun toggleChecked(
-        id: Long,
-        checked: Boolean
-    ) {
-        itemDao.setChecked(id, checked)
+    override suspend fun changeQty(id: Long, delta: Int) {
+        require(delta == 1 || delta == -1)
+        itemDao.changeQty(id, delta)
     }
 
-    override suspend fun deleteItemSoft(
-        id: Long
-    ) {
-        itemDao.setActive(id, false)
-    }
+    override suspend fun toggleChecked(id: Long, checked: Boolean) = itemDao.setChecked(id, checked)
+    override suspend fun deleteItemSoft(id: Long) = itemDao.setActive(id, false)
 }

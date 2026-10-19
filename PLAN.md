@@ -56,7 +56,7 @@ Remaining verification gate: physical phone
 add/edit/delete/category checks, retained shopping lists, and persistence after restart.
 No new stable tag until this verification is complete.
 
-## Phase 3: Shopping Lists
+## Phase 3: Shopping Lists — build and automated tests passed; manual acceptance pending
 
 1. Verify existing list display/create/delete.
 2. Rename and open a specific list.
@@ -101,3 +101,16 @@ have been removed by that runner teardown; this is separate from the Room migrat
 For subsequent tests on a phone containing user data, avoid this runner cleanup:
 install app/test APKs with adb install -r and invoke instrumentation directly, or use
 a dedicated test device. Do not rerun connected tests on the user's app data.
+
+
+## Approved Shopping List implementation
+
+The owner approved the local Shopping List workflow and provisional rules on 2026-10-19. See docs/SHOPPING_LISTS.md for implemented behavior, migrations, tests and remaining verification. FAMILYAPP_VISION.md remains the original product reference.
+
+## Interaction rule approved by the owner — 2026-10-20
+
+Use a long press on the relevant item/field to expose contextual actions. Do not add
+persistent Rename/Delete/Actions buttons below each entry. Shopping list cards open
+on a normal tap and expose Rename/Delete on long press. Preserve this convention for
+future contextual actions. Primary entry/navigation controls and direct quantity or
+purchased-state controls remain usable directly.

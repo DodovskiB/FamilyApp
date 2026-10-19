@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.familyapp.data.db.AppDatabase
@@ -24,17 +25,13 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             FamilyAppTheme {
-                var screen by remember { mutableStateOf(Screen.MainMenu) }
+                var screen by rememberSaveable { mutableStateOf(Screen.MainMenu) }
 
                 // DB
                 val db = AppDatabase.getInstance(applicationContext)
 
                 // REPO
-                val repo = RoomFamilyRepository(
-                    listDao = db.listDao(),
-                    itemDao = db.itemDao(),
-                    catalogItemDao = db.catalogItemDao()
-                )
+                val repo = remember(db) { RoomFamilyRepository(db) }
 
                 // VIEWMODEL
                 val mainMenuViewModel: MainMenuViewModel = viewModel(

@@ -9,10 +9,10 @@ data class ItemEntity(
     val listId: Long,
     val title: String,
 
-    // Needed because your errors said these were missing:
     val kind: Int,
     val category: String,
     val qty: Int,
     val checked: Boolean,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val catalogItemId: Long? = null
 )

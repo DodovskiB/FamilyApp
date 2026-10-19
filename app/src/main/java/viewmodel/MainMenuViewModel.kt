@@ -68,15 +68,62 @@ class MainMenuViewModel(
         repository.observeLists()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    fun addList(name: String) = viewModelScope.launch {
+    private val _listSaving = MutableStateFlow(false)
+    val listSaving = _listSaving.asStateFlow()
+    private val _listError = MutableStateFlow<String?>(null)
+    val listError = _listError.asStateFlow()
+
+    fun clearListError() { _listError.value = null }
+
+    private fun changeList(onSuccess: () -> Unit = {}, action: suspend () -> Unit) {
+        if (_listSaving.value) return
+        _listSaving.value = true
+        _listError.value = null
+        viewModelScope.launch {
+            try {
+                action()
+                onSuccess()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                _listError.value = "Could not save the change. Please try again."
+            } finally {
+                _listSaving.value = false
+            }
+        }
+    }
+
+    fun listItems(listId: Long) = repository.observeItems(listId, kind = 0)
+
+    fun addProductToList(listId: Long, productId: Long, onSuccess: () -> Unit) = changeList(onSuccess) {
+        repository.addCatalogItemToList(listId, productId)
+    }
+
+    fun createProductForList(listId: Long, title: String, category: String, onSuccess: () -> Unit) = changeList(onSuccess) {
+        repository.createProductForList(listId, title, category)
+    }
+
+    fun changeQuantity(itemId: Long, delta: Int) = changeList {
+        repository.changeQty(itemId, delta)
+    }
+
+    fun checkItem(itemId: Long, checked: Boolean) = changeList {
+        repository.toggleChecked(itemId, checked)
+    }
+
+    fun removeListItem(itemId: Long, onSuccess: () -> Unit) = changeList(onSuccess) {
+        repository.deleteItemSoft(itemId)
+    }
+
+    fun addList(name: String, onSuccess: () -> Unit = {}) = changeList(onSuccess) {
         repository.addList(name)
     }
 
-    fun renameList(listId: Long, newName: String) = viewModelScope.launch {
+    fun renameList(listId: Long, newName: String, onSuccess: () -> Unit = {}) = changeList(onSuccess) {
         repository.renameList(listId, newName)
     }
 
-    fun deleteList(listId: Long) = viewModelScope.launch {
+    fun deleteList(listId: Long, onSuccess: () -> Unit = {}) = changeList(onSuccess) {
         repository.deleteList(listId)
     }
 

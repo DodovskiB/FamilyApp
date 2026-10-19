@@ -20,11 +20,9 @@ class CatalogStorageTest {
 
     private fun openDatabase(name: String) = Room.databaseBuilder(
         context, AppDatabase::class.java, name
-    ).addMigrations(AppDatabase.MIGRATION_1_2).build()
+    ).addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3).build()
 
-    private fun repository(db: AppDatabase) = RoomFamilyRepository(
-        db.listDao(), db.itemDao(), db.catalogItemDao()
-    )
+    private fun repository(db: AppDatabase) = RoomFamilyRepository(db)
 
     @Test
     fun catalogChangesPersistAcrossDatabaseReopen() = runBlocking {

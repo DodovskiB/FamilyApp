@@ -15,6 +15,12 @@ interface FamilyRepository {
 
     suspend fun deleteCatalogItem(id: Long)
 
+    suspend fun addCatalogItemToList(listId: Long, catalogItemId: Long): Long
+
+    suspend fun createProductForList(listId: Long, title: String, category: String): Long
+
+    suspend fun changeQty(id: Long, delta: Int)
+
     /* ---------- LISTS ---------- */
 
     fun observeLists(): Flow<List<ListEntity>>

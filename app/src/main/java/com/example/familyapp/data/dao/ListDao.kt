@@ -10,11 +10,14 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ListDao {
 
-    @Query("SELECT * FROM lists ORDER BY sortOrder ASC")
+    @Query("SELECT * FROM lists ORDER BY sortOrder ASC, id ASC")
     fun observeAll(): Flow<List<ListEntity>>
 
-    @Query("SELECT * FROM lists ORDER BY sortOrder ASC")
+    @Query("SELECT * FROM lists ORDER BY sortOrder ASC, id ASC")
     suspend fun getAll(): List<ListEntity>
+
+    @Query("SELECT * FROM lists WHERE id = :id")
+    suspend fun getById(id: Long): ListEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: ListEntity): Long

@@ -12,6 +12,9 @@ interface CatalogItemDao {
     @Query("SELECT * FROM catalog_items ORDER BY category COLLATE NOCASE, title COLLATE NOCASE, id")
     fun observeAll(): Flow<List<CatalogItemEntity>>
 
+    @Query("SELECT * FROM catalog_items WHERE id = :id")
+    suspend fun getById(id: Long): CatalogItemEntity?
+
     @Insert
     suspend fun insert(item: CatalogItemEntity): Long
 
