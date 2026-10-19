@@ -21,6 +21,9 @@ interface CatalogItemDao {
     @Query("UPDATE catalog_items SET photoFileName = :fileName WHERE id = :id")
     suspend fun setPhoto(id: Long, fileName: String?)
 
+    @Query("UPDATE catalog_items SET linkUrl = :url WHERE id = :id")
+    suspend fun setLink(id: Long, url: String?)
+
     @Insert
     suspend fun insert(item: CatalogItemEntity): Long
 

@@ -12,9 +12,13 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -31,6 +35,10 @@ fun FamilyAppRoot(viewModel: MainMenuViewModel) {
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val screenState = rememberSaveableStateHolder()
+    var newListOpen by rememberSaveable { mutableStateOf(false) }
+    var newListName by rememberSaveable { mutableStateOf("") }
+    val saving by viewModel.listSaving.collectAsState()
+    val error by viewModel.listError.collectAsState()
 
     ModalNavigationDrawer(
         drawerState = drawer,
@@ -53,6 +61,15 @@ fun FamilyAppRoot(viewModel: MainMenuViewModel) {
                             scope.launch { drawer.close() }
                         }
                     )
+                    NavigationDrawerItem(
+                        label = { Text("New list") }, selected = false,
+                        onClick = {
+                            viewModel.clearListError()
+                            newListName = ""
+                            newListOpen = true
+                            scope.launch { drawer.close() }
+                        }
+                    )
                 }
             }
         }
@@ -66,4 +83,26 @@ fun FamilyAppRoot(viewModel: MainMenuViewModel) {
         }
     }
     BackHandler(enabled = drawer.isOpen) { scope.launch { drawer.close() } }
+    if (newListOpen) {
+        AlertDialog(onDismissRequest = { if (!saving) newListOpen = false },
+            title = { Text("Create list") },
+            text = {
+                Column {
+                    OutlinedTextField(value = newListName, onValueChange = { newListName = it },
+                        label = { Text("List name") }, singleLine = true, enabled = !saving)
+                    if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = newListName.isNotBlank() && !saving, onClick = {
+                    viewModel.addList(newListName) {
+                        newListOpen = false
+                        catalogOpen = false
+                    }
+                }) { Text("Create") }
+            },
+            dismissButton = {
+                TextButton(enabled = !saving, onClick = { newListOpen = false }) { Text("Cancel") }
+            })
+    }
 }

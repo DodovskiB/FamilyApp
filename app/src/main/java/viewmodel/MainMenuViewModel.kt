@@ -33,6 +33,12 @@ class MainMenuViewModel(
         _catalogError.value = null
     }
 
+    fun setCatalogLink(id: Long, url: String, onSaved: () -> Unit) = changeCatalog(onSaved) {
+        repository.setCatalogLink(id, url)
+    }
+
+    fun linkOpenFailed() { _catalogError.value = "Could not open this link. Please try again." }
+
     fun photoLaunchFailed() {
         _catalogError.value = "Could not open the camera or gallery. Please try again."
     }

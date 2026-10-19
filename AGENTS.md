@@ -30,3 +30,8 @@ Do not add a separate visible Shopping Items tile to the home screen.
 
 Show only the list name on a home list card. Keep tap-to-open and long-press actions,
 but do not display Tap to open / Hold for actions helper text below each name.
+
+## Creating lists
+
+Keep the home screen free of a New list name input/Add form. New list belongs in
+the upper-left navigation menu alongside Shopping lists and Item list.

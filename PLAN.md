@@ -134,3 +134,12 @@ See docs/PRODUCT_PHOTOS.md for lifecycle, migrations and verification limits.
 Translate existing Doma, Vikendica and Odmor (including common Cyrillic equivalents)
 to Home, Weekend House and Vacation once, preserving contents. Home list cards show
 only their names; tap opens and hold exposes actions. Do not restore hint subtitles.
+
+## Product links and menu-only list creation — 2026-10-20
+
+Owner requested links on items (Amazon/eBay examples), and moving New list name off
+the home screen. Long-press product actions now include Add/Edit link and Open link;
+the editor can also remove it. Store one optional http/https link per catalog product.
+Do not auto-fetch previews or launch websites except on an explicit Open link action.
+The home screen has no new-list form; use hamburger -> New list -> name/Create.
+See docs/LINKS_AND_MENU.md for implementation and verification.

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.example.familyapp.data.photo.ProductPhotoStore
+import com.example.familyapp.data.ProductLinks
 
 class RoomFamilyRepository(private val db: AppDatabase, private val photos: ProductPhotoStore? = null) : FamilyRepository {
     private val listDao = db.listDao()
@@ -17,6 +18,12 @@ class RoomFamilyRepository(private val db: AppDatabase, private val photos: Prod
     private val catalogItemDao = db.catalogItemDao()
 
     override fun observeCatalogItems(): Flow<List<CatalogItemEntity>> = catalogItemDao.observeAll()
+
+    override suspend fun setCatalogLink(id: Long, url: String) = db.withTransaction {
+        val normalized = ProductLinks.normalize(url)
+        requireNotNull(catalogItemDao.getById(id))
+        catalogItemDao.setLink(id, normalized)
+    }
 
     override suspend fun addCatalogItem(title: String, category: String): Long {
         require(title.isNotBlank()) { "Product name is required" }

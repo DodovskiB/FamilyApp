@@ -8,5 +8,6 @@ data class CatalogItemEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
     val category: String,
-    val photoFileName: String? = null
+    val photoFileName: String? = null,
+    val linkUrl: String? = null
 )

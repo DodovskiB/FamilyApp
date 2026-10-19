@@ -9,7 +9,7 @@ import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.familyapp.data.db.AppDatabase
-import com.example.familyapp.ui.ShoppingListScreen
+import com.example.familyapp.ui.FamilyAppRoot
 import com.example.familyapp.viewmodel.MainMenuViewModel
 import com.example.familyapp.viewmodel.MainMenuViewModelFactory
 import kotlinx.coroutines.runBlocking
@@ -33,7 +33,7 @@ class ShoppingListUiTest {
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
         runBlocking { RoomFamilyRepository(db).addCatalogItem("Milk", "Dairy") }
         vm = ViewModelProvider(store, MainMenuViewModelFactory(RoomFamilyRepository(db)))[MainMenuViewModel::class.java]
-        compose.setContent { MaterialTheme { ShoppingListScreen(vm, onOpenMenu = {}) } }
+        compose.setContent { MaterialTheme { FamilyAppRoot(vm) } }
     }
 
     @After
@@ -44,8 +44,11 @@ class ShoppingListUiTest {
 
     @Test
     fun userCanCreateRenameShopAndCancelRemovals() {
-        compose.onNodeWithText("New list name").performTextInput("Home")
-        compose.onNodeWithText("Add", substring = false).performClick()
+        compose.onNodeWithText("New list name").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Open menu").performClick()
+        compose.onNodeWithText("New list", substring = false).performClick()
+        compose.onNodeWithText("List name", substring = false).performTextInput("Home")
+        compose.onNodeWithText("Create", substring = false).performClick()
         compose.waitUntil(5_000) { vm.lists.value.size == 1 }
         compose.onNodeWithText("Rename").assertDoesNotExist()
         compose.onNodeWithText("Delete", substring = false).assertDoesNotExist()

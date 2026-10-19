@@ -4,6 +4,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
@@ -26,7 +29,6 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit) {
     val saving by viewModel.listSaving.collectAsState()
     val error by viewModel.listError.collectAsState()
     var selectedListId by rememberSaveable { mutableStateOf<Long?>(null) }
-    var newName by rememberSaveable { mutableStateOf("") }
     var renameId by rememberSaveable { mutableStateOf<Long?>(null) }
     var renameName by rememberSaveable { mutableStateOf("") }
     var deleteId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -43,17 +45,8 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit) {
     ) {
         IconButton(onClick = onOpenMenu) { Icon(Icons.Default.Menu, contentDescription = "Open menu") }
         Text("Shopping Lists", style = MaterialTheme.typography.headlineMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = newName, onValueChange = { newName = it }, label = { Text("New list name") },
-                modifier = Modifier.weight(1f), singleLine = true, enabled = !saving
-            )
-            Button(enabled = newName.isNotBlank() && !saving, onClick = {
-                viewModel.addList(newName) { newName = "" }
-            }) { Text("Add") }
-        }
         if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
-        if (lists.isEmpty()) Text("No lists yet. Create your first shopping list.")
+        if (lists.isEmpty()) Text("No lists yet. Use the menu to create your first list.")
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(lists, key = { it.id }) { list ->
                 Card(Modifier.fillMaxWidth()) {
@@ -143,6 +136,7 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name: String, onBack: () -> Unit) {
+    val uriHandler = LocalUriHandler.current
     val itemFlow = remember(viewModel, listId) { viewModel.listItems(listId) }
     val entries by itemFlow.collectAsState(initial = emptyList())
     val catalog by viewModel.catalogItems.collectAsState()
@@ -153,13 +147,14 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
     val photoActions = rememberProductPhotoActions(viewModel)
     var itemActionsId by rememberSaveable(listId) { mutableStateOf<Long?>(null) }
     var viewingPhotoId by rememberSaveable(listId) { mutableStateOf<Long?>(null) }
+    var linkingProductId by rememberSaveable(listId) { mutableStateOf<Long?>(null) }
     var pickerOpen by rememberSaveable(listId) { mutableStateOf(false) }
     var search by rememberSaveable(listId) { mutableStateOf("") }
     var creating by rememberSaveable(listId) { mutableStateOf(false) }
     var title by rememberSaveable(listId) { mutableStateOf("") }
     var category by rememberSaveable(listId) { mutableStateOf("") }
     var removingId by rememberSaveable(listId) { mutableStateOf<Long?>(null) }
-    BackHandler(enabled = !pickerOpen && removingId == null && itemActionsId == null && viewingPhotoId == null) { onBack() }
+    BackHandler(enabled = !pickerOpen && removingId == null && itemActionsId == null && viewingPhotoId == null && linkingProductId == null) { onBack() }
 
     Column(
         Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp),
@@ -298,8 +293,12 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
     entries.firstOrNull { it.id == itemActionsId }?.let { item ->
         AlertDialog(onDismissRequest = { itemActionsId = null }, title = { Text(item.title) },
             text = {
-                Column {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
                     catalog.firstOrNull { it.id == item.catalogItemId }?.let { product ->
+                        ProductLinkMenuOptions(product, !saving && !photoSaving,
+                            onClose = { itemActionsId = null },
+                            onEdit = { viewModel.clearCatalogError(); linkingProductId = product.id },
+                            onOpenFailure = { viewModel.linkOpenFailed() }, onOpenLink = { uriHandler.openUri(it) })
                         PhotoMenuOptions(product, photoActions, !saving && !photoSaving,
                             onClose = { itemActionsId = null }, onView = { viewingPhotoId = product.id },
                             onRemove = { viewModel.removeCatalogPhoto(product.id) })
@@ -314,6 +313,9 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
     }
     catalog.firstOrNull { it.id == viewingPhotoId }?.let { product ->
         ProductPhotoDialog(product) { viewingPhotoId = null }
+    }
+    catalog.firstOrNull { it.id == linkingProductId }?.let { product ->
+        ProductLinkDialog(product, viewModel) { linkingProductId = null }
     }
     entries.firstOrNull { it.id == removingId }?.let { item ->
         AlertDialog(

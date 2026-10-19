@@ -21,6 +21,8 @@ interface FamilyRepository {
 
     suspend fun removeCatalogPhoto(id: Long)
 
+    suspend fun setCatalogLink(id: Long, url: String)
+
     suspend fun addCatalogItemToList(listId: Long, catalogItemId: Long): Long
 
     suspend fun createProductForList(listId: Long, title: String, category: String): Long
