@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.familyapp.data.entity.ItemEntity
 import com.example.familyapp.data.entity.ListEntity
-import com.example.familyapp.repo.FamilyRepository
+import repo.FamilyRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -31,7 +31,7 @@ class MainMenuViewModel(
     }
 
     fun observeItemsByList(listId: Long): StateFlow<List<ItemEntity>> =
-        repository.observeItemsByList(listId)
+        repository.observeItems(listId, kind = 0)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun addItem(
@@ -40,12 +40,8 @@ class MainMenuViewModel(
     ) = viewModelScope.launch {
         repository.addItem(
             listId = listId,
-            name = name,
-            kind = 0,
-            category = "Other",
-            qty = 1,
-            checked = false,
-            isActive = true
+            title = name,
+            kind = 0
         )
     }
 }

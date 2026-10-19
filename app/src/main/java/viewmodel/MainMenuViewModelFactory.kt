@@ -2,7 +2,7 @@ package com.example.familyapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.familyapp.repo.FamilyRepository
+import repo.FamilyRepository
 
 class MainMenuViewModelFactory(
     private val repository: FamilyRepository
