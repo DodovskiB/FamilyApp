@@ -174,6 +174,8 @@ NtCreateDirectoryObject / credential-manager грешка. Корисникот 
 
 ## Следни чекори, по ред
 
+Детална работна чек-листа: `NEXT_SESSION_CHECKLIST.md` (подготвена за 22 октомври 2026).
+
 1. Провери latest Git/source состојба и дека двата уреда ја имаат актуелната верзија.
 2. Тестирај истиот Google account на два физички телефона: download на постојните
    листи, додавање/уредување, concurrent qty/check, offline edits и повторно поврзување.

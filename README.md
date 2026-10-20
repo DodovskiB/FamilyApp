@@ -21,6 +21,7 @@ Never add client secrets, service-role keys or account credentials to the reposi
 ```
 
 To continue from another chat or computer, start with [the project handover](PROJECT_HANDOVER.md).
+Use [the next-session checklist](NEXT_SESSION_CHECKLIST.md) for the testing and sharing rollout order.
 See [the plan](PLAN.md), [sync behavior and verification](docs/CLOUD_SYNC.md), and
 [the original product vision](FAMILYAPP_VISION.md).
 
