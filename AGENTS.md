@@ -1,6 +1,9 @@
 # Shopping List App development guidance
 
 Read FAMILYAPP_VISION.md for the product reference and PLAN.md for approved decisions.
+Read PROJECT_HANDOVER.md for the latest cross-chat context. Keep its verified state,
+test results, pending work and last confirmed GitHub checkpoint current when finishing
+a development session. Never include credentials or private user data in it.
 
 ## Interaction convention
 

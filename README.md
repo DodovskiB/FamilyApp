@@ -20,6 +20,7 @@ Never add client secrets, service-role keys or account credentials to the reposi
 .\gradlew.bat :app:assembleDebug :app:testDebugUnitTest
 ```
 
+To continue from another chat or computer, start with [the project handover](PROJECT_HANDOVER.md).
 See [the plan](PLAN.md), [sync behavior and verification](docs/CLOUD_SYNC.md), and
 [the original product vision](FAMILYAPP_VISION.md).
 
