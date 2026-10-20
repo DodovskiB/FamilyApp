@@ -17,10 +17,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.familyapp.R
+import com.example.familyapp.sync.SyncStatus
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun AccountScreen(state: AccountState, onSignIn: () -> Unit, onSignOut: () -> Unit,
+                  syncStatus: SyncStatus? = null,
                   onBack: (() -> Unit)? = null) {
     Surface(Modifier.fillMaxSize()) {
         Column(Modifier.safeDrawingPadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -30,7 +32,12 @@ fun AccountScreen(state: AccountState, onSignIn: () -> Unit, onSignOut: () -> Un
             } else if (state.userId != null) {
                 Text(state.name ?: "Signed in", style = MaterialTheme.typography.titleLarge)
                 state.email?.let { Text(it) }
-                Text("Signed in with Google. Your lists are currently saved on this phone. Sharing and synchronization are being added next.")
+                Text("Signed in with Google. Your shopping lists are connected to your account.")
+                syncStatus?.let {
+                    Text(it.message)
+                    if (it.pending > 0) Text("${it.pending} changes waiting to sync")
+                }
+                Text("Lists sync while the app is open. Product photos are currently saved on this phone.")
                 Button(onClick = onSignOut, enabled = !state.busy) { Text("Sign out") }
             } else {
                 Text("Sign in with your Google account to connect ${stringResource(R.string.app_name)} to your profile.")

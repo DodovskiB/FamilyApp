@@ -49,6 +49,10 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
                             mutableState.value = AccountState(configured = true, loading = false,
                                 requiresSignIn = true, error = "Please sign in again.")
                         } else {
+                            if (mutableState.value.userId == user.id && !mutableState.value.loading) {
+                                mutableState.update { it.copy(email = user.email) }
+                                return@collectLatest
+                            }
                             // Hide the previous account immediately while resolving storage.
                             mutableState.update { it.copy(loading = true, userId = null) }
                             try {

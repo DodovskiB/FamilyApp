@@ -117,3 +117,12 @@ The owner requested saving and publishing this working version before starting c
 synchronization. Tag: `stable-2026-10-21`. This checkpoint includes the product rename,
 Google login/session persistence, local account isolation and existing shopping features.
 No synchronization implementation or remote shopping-data schema has been added yet.
+
+## Subsequent same-account sync — 2026-10-21
+
+The statements above describe the saved pre-sync baseline. Same-account cloud sync
+has now been implemented and deployed to the existing Supabase project. Build/unit
+tests, 12 isolated device tests, SQL access-control tests and a live two-client test
+passed. After update-installing, the owner's Note 20 retained its existing contents
+and Account displayed Up to date. See CLOUD_SYNC.md for details and limits.
+Two-physical-phone acceptance and invitations/Owner/Admin sharing remain pending.

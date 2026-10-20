@@ -17,6 +17,11 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.familyapp.auth.AccountRepository
+import com.example.familyapp.sync.SyncController
+import com.example.familyapp.sync.SupabaseSyncTransport
 import com.example.familyapp.auth.AccountViewModel
 import com.example.familyapp.auth.AccountScreen
 import com.example.familyapp.data.DefaultShoppingLists
@@ -44,19 +49,32 @@ class MainActivity : ComponentActivity() {
         setContent {
             FamilyAppTheme {
                 val account by accountViewModel.state.collectAsState()
+                val db = remember(account.databaseName) { AppDatabase.getInstance(applicationContext, account.databaseName) }
+                val setup = if (account.databaseName == "familyapp.db") "familyapp_setup" else "setup_${account.databaseName}"
+                val sync = remember(account.userId, db) {
+                    account.userId?.let { SyncController(db, SupabaseSyncTransport(AccountRepository.getInstance(applicationContext), it)) }
+                }
+                val syncStatus = sync?.status?.collectAsState()?.value
+                LaunchedEffect(sync) {
+                    sync?.let { controller ->
+                        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                            controller.run { DefaultShoppingLists.initialize(db, getSharedPreferences(setup, MODE_PRIVATE)) }
+                        }
+                    }
+                }
                 var accountOpen by rememberSaveable { mutableStateOf(false) }
                 val locked = account.loading || (account.requiresSignIn && account.userId == null)
                 if (accountOpen || locked) {
                     AccountScreen(account, accountViewModel::signIn, accountViewModel::signOut,
+                        syncStatus = syncStatus,
                         onBack = if (locked) null else ({ accountOpen = false }))
                     BackHandler(enabled = !locked) { accountOpen = false }
                 } else {
                     key(account.databaseName) {
-                        val db = remember { AppDatabase.getInstance(applicationContext, account.databaseName) }
                         LaunchedEffect(db) {
-                            val setup = if (account.databaseName == "familyapp.db") "familyapp_setup"
-                                else "setup_${account.databaseName}"
-                            DefaultShoppingLists.initialize(db, getSharedPreferences(setup, MODE_PRIVATE))
+                            if (account.userId == null && !account.requiresSignIn) {
+                                DefaultShoppingLists.initialize(db, getSharedPreferences(setup, MODE_PRIVATE))
+                            }
                         }
                         val owner = remember { object : ViewModelStoreOwner {
                             override val viewModelStore = ViewModelStore()

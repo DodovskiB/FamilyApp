@@ -8,7 +8,11 @@ Latest verified checkpoint: `stable-2026-10-21`. Google sign-in was confirmed by
 owner on Note 20, and session restoration/home navigation was verified after a cold
 restart. Debug app/test builds, unit tests and 8 device storage/security tests passed.
 The owner requested saving this baseline to GitHub before beginning synchronization.
-Cloud sync, invitations and shared-list permissions are not implemented yet.
+That tag is the pre-sync baseline. Same-account cloud synchronization now passes
+build, storage, server access-control and live two-client tests. Note 20 displays
+Up to date with existing local contents retained. See docs/CLOUD_SYNC.md.
+Two-physical-phone acceptance remains pending. Invitations/shared-list permissions
+are not implemented yet.
 
 Updated: 2026-10-19. Based on the user's Project Handover & Development Plan.
 

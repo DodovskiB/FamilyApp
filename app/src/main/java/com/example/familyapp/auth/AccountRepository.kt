@@ -33,6 +33,12 @@ class AccountRepository private constructor(context: Context) {
 
     val status get() = client?.auth?.sessionStatus
 
+    internal fun accessTokenFor(userId: String): String {
+        val session = client?.auth?.currentSessionOrNull()
+        check(session?.user?.id == userId) { "Account changed or signed out" }
+        return checkNotNull(session).accessToken
+    }
+
     suspend fun signIn() {
         val auth = requireNotNull(client).auth
         auth.awaitInitialization()
