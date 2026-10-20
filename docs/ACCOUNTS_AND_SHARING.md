@@ -57,6 +57,11 @@ Approved 2026-10-21. Preserve the working Kotlin/Compose/Room application.
 
 7. Build, update-install, test sign-in, cancel, app restart, sign-out and account isolation.
 
+Setup status: the owner created the **FamilyApp** Free project in West EU (Ireland).
+Its public URL/key are configured in ignored local.properties. The exact mobile callback
+was saved and verified in Supabase. Google Cloud sign-in/provider configuration is still
+pending. No lists, products or photos have been uploaded to the service.
+
 ## Next gates
 
 1. Authenticate on the physical phone; verify preserved local lists and another account's isolation.
@@ -84,3 +89,6 @@ on Note 20 passed **8 tests**: 3 account isolation/encrypted storage/callback te
 tests. These use isolated preferences, files and databases, not the owner's live records.
 Google sign-in acceptance remains required before calling authentication complete.
 Cloud synchronization is not implemented.
+The APK installed and smoke-launched on Note 20 was built before adding cloud configuration,
+so its Account screen still reports setup in progress. A subsequent build with the public
+project configuration also passed; install that build after Google provider setup is complete.
