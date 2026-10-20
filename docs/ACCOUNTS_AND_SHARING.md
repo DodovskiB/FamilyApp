@@ -102,10 +102,18 @@ before update-installing. Both app/test APK update-installs succeeded. Direct in
 on Note 20 passed **8 tests**: 3 account isolation/encrypted storage/callback tests,
 2 catalog persistence/migration tests, and 3 shopping-list persistence/concurrency/migration
 tests. These use isolated preferences, files and databases, not the owner's live records.
-Google sign-in acceptance remains required before calling authentication complete.
 Cloud synchronization is not implemented.
 After the rename and provider configuration, app/test APK builds and unit tests passed
 again. The configured **Shopping List App** APK was update-installed and started on
-Note 20; a new pre-sign-in backup was validated. The phone was locked, so the owner
-was asked to unlock it and complete the first Google sign-in. That end-to-end gate
-is still pending; do not report successful Google sign-in until verified.
+Note 20; a new pre-sign-in backup was validated. The owner completed the Google flow
+and confirmed successful sign-in. A subsequent force-stop/cold start was verified:
+the persisted local account binding was present and the shopping-list home screen
+opened rather than requiring sign-in again. Manual sign-out/account-switch acceptance
+and two-phone synchronization remain future checks.
+
+## Saved baseline — 2026-10-21
+
+The owner requested saving and publishing this working version before starting cloud
+synchronization. Tag: `stable-2026-10-21`. This checkpoint includes the product rename,
+Google login/session persistence, local account isolation and existing shopping features.
+No synchronization implementation or remote shopping-data schema has been added yet.

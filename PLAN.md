@@ -4,6 +4,12 @@ Current product name: **Shopping List App**, renamed by the owner on 2026-10-21.
 FamilyApp is the historical name. Keep the existing Android applicationId, package,
 database names and Git repository to preserve update compatibility and user data.
 
+Latest verified checkpoint: `stable-2026-10-21`. Google sign-in was confirmed by the
+owner on Note 20, and session restoration/home navigation was verified after a cold
+restart. Debug app/test builds, unit tests and 8 device storage/security tests passed.
+The owner requested saving this baseline to GitHub before beginning synchronization.
+Cloud sync, invitations and shared-list permissions are not implemented yet.
+
 Updated: 2026-10-19. Based on the user's Project Handover & Development Plan.
 
 ## Confirmed baseline
