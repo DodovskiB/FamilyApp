@@ -1,4 +1,4 @@
-# FamilyApp development guidance
+# Shopping List App development guidance
 
 Read FAMILYAPP_VISION.md for the product reference and PLAN.md for approved decisions.
 

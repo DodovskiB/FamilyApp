@@ -1,4 +1,4 @@
-# FamilyApp implementation review against the product vision
+# Shopping List App implementation review against the product vision
 
 Date: 2026-10-19
 Reference: [FAMILYAPP_VISION.md](../FAMILYAPP_VISION.md), preserved unchanged from the user's file.

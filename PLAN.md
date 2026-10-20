@@ -1,8 +1,9 @@
-# FamilyApp development plan
+# Shopping List App development plan
 
 Current product name: **Shopping List App**, renamed by the owner on 2026-10-21.
-FamilyApp is the historical name. Keep the existing Android applicationId, package,
-database names and Git repository to preserve update compatibility and user data.
+FamilyApp is the historical name. Keep the existing Android applicationId, package
+and database names to preserve update compatibility and user data. The owner approved
+renaming the repository and local project folder to shopping-list-app on 2026-10-21.
 
 Latest verified checkpoint: `stable-2026-10-21`. Google sign-in was confirmed by the
 owner on Note 20, and session restoration/home navigation was verified after a cold

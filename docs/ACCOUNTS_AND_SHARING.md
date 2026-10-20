@@ -41,7 +41,7 @@ Approved 2026-10-21. Preserve the working Kotlin/Compose/Room application.
 ## Cloud setup
 
 1. Create a personal Free organization/project owned by the app owner, in an EU region.
-2. In Google Cloud, create the FamilyApp OAuth application and a **Web application** client
+2. In Google Cloud, create the Shopping List App OAuth application and a **Web application** client
    for the browser-based flow. The authorized redirect is the Supabase project callback
    `https://PROJECT_REF.supabase.co/auth/v1/callback`.
 3. Configure the Google provider in Supabase using that client's ID and secret. Keep
@@ -126,3 +126,12 @@ tests, 12 isolated device tests, SQL access-control tests and a live two-client 
 passed. After update-installing, the owner's Note 20 retained its existing contents
 and Account displayed Up to date. See CLOUD_SYNC.md for details and limits.
 Two-physical-phone acceptance and invitations/Owner/Admin sharing remain pending.
+
+## Repository and project branding — 2026-10-21
+
+The owner approved the GitHub repository rename to `DodovskiB/shopping-list-app`
+and the local folder rename to `C:\Users\bojan\StudioProjects\shopping-list-app`.
+Gradle/Android Studio display Shopping List App. Launcher/activity labels, app screens
+and Google consent branding use Shopping List App. The Android application ID,
+OAuth callback, database names and private preferences remain unchanged for existing
+installation/session compatibility. No migration or new application installation is needed.
