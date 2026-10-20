@@ -1,4 +1,4 @@
-# Accounts and sharing
+# Shopping List App — Accounts and sharing
 
 Approved 2026-10-21. Preserve the working Kotlin/Compose/Room application.
 
@@ -57,10 +57,25 @@ Approved 2026-10-21. Preserve the working Kotlin/Compose/Room application.
 
 7. Build, update-install, test sign-in, cancel, app restart, sign-out and account isolation.
 
-Setup status: the owner created the **FamilyApp** Free project in West EU (Ireland).
-Its public URL/key are configured in ignored local.properties. The exact mobile callback
-was saved and verified in Supabase. Google Cloud sign-in/provider configuration is still
-pending. No lists, products or photos have been uploaded to the service.
+Setup status: the owner created the historical **FamilyApp** Free Supabase project in
+West EU (Ireland). Its public URL/key are configured in ignored local.properties.
+The exact mobile callback was saved and verified in Supabase. The owner created Google
+Cloud project `shopping-list-app-512222` and accepted Google's User Data Policy.
+With explicit owner approval, the Web OAuth client **Shopping List App Supabase Sign-in**
+was created and connected to Supabase; the Google provider was verified Enabled.
+The client secret was transferred directly into the provider configuration, without
+writing it to local files, Git or the APK. Nonce checks and required email remain enabled.
+Google branding is **Shopping List App**, with External/Testing audience. The owner's
+Google account was added and verified in Test users. No lists, products or photos
+have been uploaded to the service.
+
+## Name change — approved 2026-10-21
+
+The owner renamed the product to **Shopping List App**. Android app label, navigation
+header, account screen, Google branding/client and Supabase project display name use
+the new name. Keep applicationId/package
+`com.example.familyapp`, the existing callback, database/files and repository folder
+unchanged so this APK updates the installed application and preserves its data.
 
 ## Next gates
 
@@ -89,6 +104,8 @@ on Note 20 passed **8 tests**: 3 account isolation/encrypted storage/callback te
 tests. These use isolated preferences, files and databases, not the owner's live records.
 Google sign-in acceptance remains required before calling authentication complete.
 Cloud synchronization is not implemented.
-The APK installed and smoke-launched on Note 20 was built before adding cloud configuration,
-so its Account screen still reports setup in progress. A subsequent build with the public
-project configuration also passed; install that build after Google provider setup is complete.
+After the rename and provider configuration, app/test APK builds and unit tests passed
+again. The configured **Shopping List App** APK was update-installed and started on
+Note 20; a new pre-sign-in backup was validated. The phone was locked, so the owner
+was asked to unlock it and complete the first Google sign-in. That end-to-end gate
+is still pending; do not report successful Google sign-in until verified.

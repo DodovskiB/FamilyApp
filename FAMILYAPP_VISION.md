@@ -1,5 +1,8 @@
 # FamilyApp — Product Vision and Functional Roadmap
 
+> Current name (owner decision, 2026-10-21): **Shopping List App**. This document
+> retains the original FamilyApp wording as historical product context.
+
 **Project:** FamilyApp (originally FamilyLists)  
 **Platform:** Android  
 **Current project package:** `com.example.familyapp`  

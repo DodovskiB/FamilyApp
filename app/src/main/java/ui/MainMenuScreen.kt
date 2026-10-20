@@ -8,6 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.example.familyapp.R
 import androidx.compose.ui.unit.dp
 import com.example.familyapp.viewmodel.MainMenuViewModel
 
@@ -22,7 +24,7 @@ fun MainMenuScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("FamilyApp")
+        Text(stringResource(R.string.app_name))
 
         Button(onClick = onShoppingList) {
             Text("Shopping List")

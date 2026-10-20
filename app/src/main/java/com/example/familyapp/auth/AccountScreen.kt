@@ -15,6 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.example.familyapp.R
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -22,7 +24,7 @@ fun AccountScreen(state: AccountState, onSignIn: () -> Unit, onSignOut: () -> Un
                   onBack: (() -> Unit)? = null) {
     Surface(Modifier.fillMaxSize()) {
         Column(Modifier.safeDrawingPadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("FamilyApp account", style = MaterialTheme.typography.headlineMedium)
+            Text("${stringResource(R.string.app_name)} account", style = MaterialTheme.typography.headlineMedium)
             if (state.loading) {
                 CircularProgressIndicator()
             } else if (state.userId != null) {
@@ -31,7 +33,7 @@ fun AccountScreen(state: AccountState, onSignIn: () -> Unit, onSignOut: () -> Un
                 Text("Signed in with Google. Your lists are currently saved on this phone. Sharing and synchronization are being added next.")
                 Button(onClick = onSignOut, enabled = !state.busy) { Text("Sign out") }
             } else {
-                Text("Sign in with your Google account to connect FamilyApp to your profile.")
+                Text("Sign in with your Google account to connect ${stringResource(R.string.app_name)} to your profile.")
                 if (!state.requiresSignIn) {
                     Text("The existing lists on this phone will be associated with the first account you sign in with.")
                 }

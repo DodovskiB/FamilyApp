@@ -25,6 +25,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.example.familyapp.R
 import androidx.compose.ui.unit.dp
 import com.example.familyapp.viewmodel.MainMenuViewModel
 import kotlinx.coroutines.launch
@@ -49,7 +51,7 @@ fun FamilyAppRoot(
         drawerContent = {
             ModalDrawerSheet {
                 Column(Modifier.safeDrawingPadding().padding(16.dp)) {
-                    Text("FamilyApp", style = MaterialTheme.typography.headlineSmall)
+                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall)
                     Spacer(Modifier.height(24.dp))
                     if (onAccount != null) {
                         NavigationDrawerItem(
