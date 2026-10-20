@@ -30,7 +30,11 @@ import com.example.familyapp.viewmodel.MainMenuViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun FamilyAppRoot(viewModel: MainMenuViewModel) {
+fun FamilyAppRoot(
+    viewModel: MainMenuViewModel,
+    accountLabel: String = "Account",
+    onAccount: (() -> Unit)? = null
+) {
     var catalogOpen by rememberSaveable { mutableStateOf(false) }
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -47,6 +51,12 @@ fun FamilyAppRoot(viewModel: MainMenuViewModel) {
                 Column(Modifier.safeDrawingPadding().padding(16.dp)) {
                     Text("FamilyApp", style = MaterialTheme.typography.headlineSmall)
                     Spacer(Modifier.height(24.dp))
+                    if (onAccount != null) {
+                        NavigationDrawerItem(
+                            label = { Text(accountLabel) }, selected = false,
+                            onClick = { scope.launch { drawer.close() }; onAccount() }
+                        )
+                    }
                     NavigationDrawerItem(
                         label = { Text("Shopping lists") }, selected = !catalogOpen,
                         onClick = {

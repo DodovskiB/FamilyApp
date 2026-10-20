@@ -1,8 +1,29 @@
+import java.util.Properties
+import java.util.Base64
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
+
+val localConfig = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+val projectUrl = localConfig.getProperty("supabase.url", "").trim()
+val publicKey = localConfig.getProperty("supabase.publishableKey", "").trim()
+require(projectUrl.isEmpty() || projectUrl.matches(Regex("https://[a-z0-9-]+\\.supabase\\.co/?"))) {
+    "supabase.url must be the HTTPS project URL."
+}
+require(publicKey.isEmpty() || publicKey.startsWith("sb_publishable_") || runCatching {
+    val payload = String(Base64.getUrlDecoder().decode(publicKey.split('.')[1]))
+    Regex("\"role\"\\s*:\\s*\"anon\"").containsMatchIn(payload)
+}.getOrDefault(false)) { "Use only the Supabase publishable/anon key, never a secret or service_role key." }
+localConfig.setProperty("supabase.url", projectUrl.removeSuffix("/"))
+localConfig.setProperty("supabase.publishableKey", publicKey)
+fun configString(name: String): String = "\"" +
+    (localConfig.getProperty(name) ?: "").replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
 android {
     namespace = "com.example.familyapp"
@@ -16,6 +37,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "SUPABASE_URL", configString("supabase.url"))
+        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", configString("supabase.publishableKey"))
     }
 
     buildTypes {
@@ -29,16 +52,22 @@ android {
     }
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.2.6"))
+    implementation("io.github.jan-tennert.supabase:auth-kt")
+    implementation("io.ktor:ktor-client-android:3.3.1")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

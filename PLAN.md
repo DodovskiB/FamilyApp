@@ -74,7 +74,9 @@ implementing that integration; do not assume changes to one list affect another.
 
 Decide authentication, backend/cloud service, roles, and membership model first.
 Then implement family joining, list sharing, selected-list access, admin controls,
-synchronization, and testing across multiple phones. No provider is selected yet.
+synchronization, and testing across multiple phones. The owner selected Google sign-in
+and Supabase Free on 2026-10-21. See docs/ACCOUNTS_AND_SHARING.md for approved
+Owner/Admin permissions, invitations, purchased-item behavior and staged acceptance gates.
 
 ## Phase 5: Future features (order undecided)
 

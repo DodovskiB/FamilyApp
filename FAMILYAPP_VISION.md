@@ -222,4 +222,12 @@ Then ask the owner to approve the next development task.
 
 ---
 
-*Source note: Compiled from the FamilyApp planning context available in this conversation. The original full export has not yet been reviewed; the document may be expanded when that source becomes available.*
+*Source note: Compiled from the FamilyApp planning context available in this conversation.
+The owner supplied the original brainstorming export, reviewed on 2026-10-21. It confirms
+Android, reusable products, multiple lists, live shared updates, free initial use and
+incremental extensions as the core goals. App Inventor/Firebase and early time estimates
+were prototype suggestions, not requirements to replace the working Kotlin app.
+The owner subsequently approved Google sign-in with Supabase Free and Owner/Admin
+list membership; current decisions and implementation status are maintained in PLAN.md
+and docs/ACCOUNTS_AND_SHARING.md. Historical undecided statements above describe the
+original vision, not the current implementation status.*

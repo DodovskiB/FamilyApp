@@ -56,16 +56,18 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        @Volatile private var INSTANCE: AppDatabase? = null
+        private val instances = mutableMapOf<String, AppDatabase>()
 
-        fun getInstance(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
+        fun getInstance(context: Context, databaseName: String = "familyapp.db"): AppDatabase {
+            require(databaseName == "familyapp.db" || databaseName.matches(Regex("familyapp_account_[a-f0-9]{64}\\.db")))
+            return synchronized(this) {
+                instances[databaseName]?.let { return@synchronized it }
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "familyapp.db"
+                    databaseName
                 ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build()
-                INSTANCE = instance
+                instances[databaseName] = instance
                 instance
             }
         }
