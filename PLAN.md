@@ -95,6 +95,12 @@ Owner/Admin permissions, invitations, purchased-item behavior and staged accepta
 
 ## Phase 5: Future features (order undecided)
 
+Owner-approved UI follow-up: refine the design screen by screen in the existing
+Compose project after sharing is stable. Add Settings -> Language with English as
+the default and Macedonian (Cyrillic) as an option, persisting the choice across
+restarts. Translate interface text, not user-entered list/product names. This is
+planned, not implemented.
+
 Product photos; normal and location reminders; reusable travel templates; product
 links; history/statistics; photo-based product recognition; price/discount tracking.
 Sources/stores, AI service, statistics, and reminder rules are not decided.
