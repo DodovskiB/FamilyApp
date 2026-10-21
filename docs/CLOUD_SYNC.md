@@ -63,8 +63,9 @@ No paid service or billing change was enabled.
 - The updated app was opened on the unlocked Note 20. Existing Home contents were
   visible; Account displayed **Up to date** for the owner's signed-in account.
 
-The live test models two clients on one phone. Acceptance on two physical phones
-remains pending. Invitations/cross-account sharing are not implemented.
+The automated live test models two clients on one phone. Subsequent physical
+Note 20/Honor online, offline and concurrent-quantity acceptance is recorded below.
+Invitations/cross-account sharing are not implemented.
 
 Opt in to the live-service test explicitly (requires an existing signed-in session):
 
@@ -101,8 +102,20 @@ migration. All entries are moved unchanged; catalogs are not deduplicated.
 The approved live repair ran in one transaction with full before/after item-field
 and catalog comparisons. A subsequent Honor backup verified exactly three lists,
 all six item entries unchanged except parent list, and all five catalog rows unchanged.
-Updated Honor displayed Up to date after cold launch. Note 20 update/physical
-cross-device acceptance remains pending.
+Updated Honor displayed Up to date after cold launch. Note 20 was backed up and
+update-installed too; its home screen displayed the same three lists. A temporary
+list/product created through the Note 20 UI appeared on Honor (owner confirmation).
+The owner changed its quantity from 2 to 3 and checked it on Honor; the agent verified
+quantity 3 and checked=true directly in Note 20's UI. Physical online sync therefore
+passed in both directions. For the offline/concurrency test, Honor disconnected,
+incremented from 3 to 4 and unchecked the entry. Note 20 still showed 3/checked;
+it independently incremented to 4. After Honor reconnected, both devices showed
+5/unchecked (Honor owner confirmation, Note 20 direct UI observation). Both increments
+and the offline check change survived. The temporary list and catalog product were
+then removed through Note 20 UI; its home returned to the three original lists.
+A final server read confirmed exactly 3 active lists, 6 active entries and 5 active
+catalog records, matching the preserved original data after cleanup.
+Invitations remain unimplemented.
 
 Validation: app/test builds and three unit tests passed. On Honor, 15 isolated device
 tests passed, including explicit combine/separate choices, ambiguity and retry.
