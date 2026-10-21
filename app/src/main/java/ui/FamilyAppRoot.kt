@@ -30,12 +30,15 @@ import com.example.familyapp.R
 import androidx.compose.ui.unit.dp
 import com.example.familyapp.viewmodel.MainMenuViewModel
 import kotlinx.coroutines.launch
+import com.example.familyapp.sync.SharingState
 
 @Composable
 fun FamilyAppRoot(
     viewModel: MainMenuViewModel,
     accountLabel: String = "Account",
-    onAccount: (() -> Unit)? = null
+    onAccount: (() -> Unit)? = null,
+    sharing: SharingState? = null,
+    onSharingAction: (String, Long?, String, String?, String?) -> Unit = { _, _, _, _, _ -> }
 ) {
     var catalogOpen by rememberSaveable { mutableStateOf(false) }
     val drawer = rememberDrawerState(DrawerValue.Closed)
@@ -45,6 +48,12 @@ fun FamilyAppRoot(
     var newListName by rememberSaveable { mutableStateOf("") }
     val saving by viewModel.listSaving.collectAsState()
     val error by viewModel.listError.collectAsState()
+    var sharingOpen by rememberSaveable { mutableStateOf(false) }
+    var sharingList by rememberSaveable { mutableStateOf<Long?>(null) }
+    if (sharingOpen && sharing != null) {
+        SharingScreen(sharing, sharingList, onBack = { sharingOpen = false }, onAction = onSharingAction)
+        return
+    }
 
     ModalNavigationDrawer(
         drawerState = drawer,
@@ -82,6 +91,10 @@ fun FamilyAppRoot(
                             scope.launch { drawer.close() }
                         }
                     )
+                    if (sharing != null) NavigationDrawerItem(
+                        label = { Text("Invitations (${sharing.invitations.count { it.incoming }})") }, selected = false,
+                        onClick = { sharingList = null; sharingOpen = true; scope.launch { drawer.close() } }
+                    )
                 }
             }
         }
@@ -90,7 +103,8 @@ fun FamilyAppRoot(
             if (catalogOpen) {
                 ShoppingItemsScreen(viewModel, onBack = { catalogOpen = false })
             } else {
-                ShoppingListScreen(viewModel, onOpenMenu = { scope.launch { drawer.open() } })
+                ShoppingListScreen(viewModel, onOpenMenu = { scope.launch { drawer.open() } }, sharing = sharing,
+                    onShare = { sharingList = it; sharingOpen = true })
             }
         }
     }

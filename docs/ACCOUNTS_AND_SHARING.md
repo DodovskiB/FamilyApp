@@ -135,3 +135,11 @@ Gradle/Android Studio display Shopping List App. Launcher/activity labels, app s
 and Google consent branding use Shopping List App. The Android application ID,
 OAuth callback, database names and private preferences remain unchanged for existing
 installation/session compatibility. No migration or new application installation is needed.
+
+## Owner/Admin implementation after the saved baseline
+
+Earlier sections describe historical checkpoints. Owner/Admin list sharing and
+in-app invitations are implemented and the server migration is deployed. See
+[LIST_SHARING.md](LIST_SHARING.md) for current behavior, tests and remaining
+cross-account physical acceptance. Same-account physical online/offline/concurrent
+testing passed before this phase. No new sharing changes have been pushed yet.

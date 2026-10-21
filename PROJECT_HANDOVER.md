@@ -44,11 +44,11 @@ Studio, телефоните или најавените browser tabs. Ако н
 
 ## Последна потврдена состојба во Git
 
-Корисникот потврди успешен push на `master` до **a037968** на 21 октомври 2026.
-Понов локален code commit **081f619** ја содржи поправката за duplicate imports,
-merge RPC и тестовите. Таа е инсталирана на двата телефона и SQL е deployed, но
-сè уште НЕ е потврден push на овој commit. Лаптоп clone само од стариот GitHub
-commit нема да ја содржи поправката. Документациските commits исто така се понови.
+Корисникот потврди успешен push на `master` до **8e14b05** на 21 октомври 2026.
+Тој ги содржи duplicate-import поправката, серверскиот merge и потврдениот физички
+online/offline/concurrent тест. Новите Owner/Admin sharing измени се понови локални
+промени; нивен push сè уште не е одобрен или потврден. Види docs/LIST_SHARING.md
+за имплементацијата, тестовите и тековниот cross-account acceptance gate.
 
 | Commit / tag | Содржина |
 |---|---|
@@ -243,3 +243,35 @@ entries, не каталогот. Re-add на веќе купен произво
 промените од сесијата, реални тест-резултати, ограничувања и точен следен чекор.
 Разликувај извршено од планирано и локално зачувано од push-нато.
 Корисникот потоа може да го замени фајлот во Home App со новата верзија.
+
+## Owner/Admin sharing — тековна работа по 8e14b05
+
+Види docs/LIST_SHARING.md за имплементацијата и ограничувањата. Миграцијата
+20261021235000_list_sharing.sql е deployed. Owner управува со покани/членови и
+ја брише листата; Admin ги менува нејзините entries, qty/check и име. Поканите
+се in-app, за потврден Google email, со Accept/Decline и истек по 7 дена.
+Нема email испраќање, нов платен сервис или нова библиотека.
+
+Shared snapshots не го поместуваат personal cursor. Queue за shared edits се
+испраќа кај вистинскиот Owner; при revoke се трга cached листата, а offline
+промените се чуваат во приватен shopping_revoked_changes без повторен upload.
+Cached податоци на offline телефон се тргаат по reconnect. Личниот каталог
+останува приватен; photos/links sharing сè уште е подоцнежна задача.
+
+Build/app/test APK/unit tests поминаа, 17 изолирани phone tests и 2 постојни live
+sync tests поминаа. Проширените SQL owner/merge/sharing тестови поминаа со rollback.
+Дополнителната поправка за локалниот catalog link кај Admin entries е изградена
+и 2 sharing теста повторно поминаа на Honor. Приватни pre-update backup копии
+се зачувани за двата телефона. Note 20 има sharing build; Honor го има поновиот
+build со local catalog association поправката. Ажурирај Note 20 со последниот APK
+кога повторно ќе се поврзе.
+
+Преку Note 20 UI се создадени привремени Sharing test и Sharing test product,
+и pending покана до договорениот втор тест account. Google OAuth test-user
+пристапот е додаден. Не запишувај приватни email адреси или auth UUID во Git.
+Физичката cross-account проверка е во тек; Honor е подготвен за рачна најава
+со вториот account. Не тврди дека прифаќање/edit/revoke е физички потврдено сè уште.
+
+Следно: заврши physical acceptance, offline/revoke/account isolation, исчисти
+само тест записи и направи локален commit. Нема одобрение за push на новите измени.
+Последниот потврден GitHub checkpoint останува 8e14b05.

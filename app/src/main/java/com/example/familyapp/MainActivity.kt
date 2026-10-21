@@ -57,6 +57,7 @@ class MainActivity : ComponentActivity() {
                     account.userId?.let { SyncController(db, SupabaseSyncTransport(AccountRepository.getInstance(applicationContext), it)) }
                 }
                 val syncStatus = sync?.status?.collectAsState()?.value
+                val sharing = sync?.sharing?.collectAsState()?.value
                 val scope = rememberCoroutineScope()
                 LaunchedEffect(sync) {
                     sync?.let { controller ->
@@ -91,7 +92,10 @@ class MainActivity : ComponentActivity() {
                         )
                         FamilyAppRoot(mainMenuViewModel,
                             accountLabel = account.email ?: "Account",
-                            onAccount = { accountOpen = true })
+                            onAccount = { accountOpen = true }, sharing = sharing,
+                            onSharingAction = { action, list, email, invitation, member ->
+                                scope.launch { sync?.sharingAction(action, list, email, invitation, member) }
+                            })
                     }
                 }
             }

@@ -21,6 +21,9 @@ class SyncStore(private val room: AppDatabase) {
             entity TEXT NOT NULL, remote_id TEXT NOT NULL, action TEXT NOT NULL, mask INTEGER NOT NULL,
             title TEXT, category TEXT, qty INTEGER, checked INTEGER, active INTEGER,
             sort_order INTEGER, parent_id TEXT, catalog_id TEXT, link_url TEXT, delta INTEGER)""")
+        db.execSQL("CREATE TABLE IF NOT EXISTS shopping_shared_access (remote_id TEXT PRIMARY KEY NOT NULL, owner_id TEXT NOT NULL)")
+        // Preserve rejected offline work privately, without ever retrying it under personal ownership.
+        db.execSQL("CREATE TABLE IF NOT EXISTS shopping_revoked_changes AS SELECT * FROM shopping_sync_outbox WHERE 0")
         // Triggers capture mutations in the same transaction as the existing DAO writes.
         definitions.forEach { definition ->
             val (table, entity) = definition
@@ -159,7 +162,59 @@ class SyncStore(private val room: AppDatabase) {
         ids.forEach { db.execSQL("DELETE FROM shopping_sync_outbox WHERE operation_id=?", arrayOf(it)) }
     }
 
-    suspend fun apply(records: JsonArray) = transaction { db ->
+    suspend fun remoteListId(local: Long): String? = transaction { db ->
+        db.query("SELECT remote_id FROM shopping_sync_map WHERE entity='list' AND local_id=?", arrayOf(local)).use {
+            if (it.moveToFirst()) it.getString(0) else null
+        }
+    }
+
+    suspend fun listMappings(): Map<Long, String> = transaction { db ->
+        db.query("SELECT local_id,remote_id FROM shopping_sync_map WHERE entity='list'").use { cursor ->
+            buildMap { while (cursor.moveToNext()) put(cursor.getLong(0), cursor.getString(1)) }
+        }
+    }
+
+    suspend fun sharedAccess(): Map<String, String> = transaction { db ->
+        db.query("SELECT remote_id,owner_id FROM shopping_shared_access").use { cursor ->
+            buildMap { while (cursor.moveToNext()) put(cursor.getString(0), cursor.getString(1)) }
+        }
+    }
+
+    suspend fun sharedListFor(change: QueuedChange): String? = transaction { db ->
+        val json = change.json
+        val id = json.getValue("id").jsonPrimitive.content
+        if (json.getValue("entity").jsonPrimitive.content == "catalog") return@transaction null
+        db.query("""SELECT a.remote_id FROM shopping_shared_access a WHERE a.remote_id=? OR a.remote_id=(
+            SELECT parent_id FROM shopping_sync_outbox WHERE operation_id=?) LIMIT 1""", arrayOf(id, change.operationId)).use {
+            if (it.moveToFirst()) it.getString(0) else null
+        }
+    }
+
+    /** Called only after a successful complete server snapshot; a network error never revokes access. */
+    suspend fun reconcileSharedAccess(access: Map<String, String>): Int = transaction { db ->
+        val old = db.query("SELECT remote_id FROM shopping_shared_access").use { cursor ->
+            buildList { while (cursor.moveToNext()) add(cursor.getString(0)) }
+        }
+        var revoked = 0
+        setValue(db, "applying", "1")
+        try {
+            (old - access.keys).forEach { remote ->
+                val where = "(entity='list' AND remote_id=?) OR (entity='item' AND parent_id=?)"
+                db.execSQL("INSERT INTO shopping_revoked_changes SELECT * FROM shopping_sync_outbox WHERE $where", arrayOf(remote, remote))
+                db.execSQL("DELETE FROM shopping_sync_outbox WHERE $where", arrayOf(remote, remote))
+                localId(db, "list", remote)?.let { local ->
+                    db.execSQL("DELETE FROM items WHERE listId=?", arrayOf(local))
+                    db.execSQL("DELETE FROM lists WHERE id=?", arrayOf(local))
+                }
+                revoked++
+            }
+            db.execSQL("DELETE FROM shopping_shared_access")
+            access.forEach { (remote, owner) -> db.execSQL("INSERT INTO shopping_shared_access VALUES (?,?)", arrayOf(remote, owner)) }
+        } finally { setValue(db, "applying", "0") }
+        revoked
+    }
+
+    suspend fun apply(records: JsonArray, advanceCursor: Boolean = true) = transaction { db ->
         setValue(db, "applying", "1")
         var blocked = false
         var revision = value(db, "cursor").toLong()
@@ -169,15 +224,15 @@ class SyncStore(private val room: AppDatabase) {
                 val id = record.getValue("id").jsonPrimitive.content
                 val entity = record.getValue("entity").jsonPrimitive.content
                 val pending = db.query("SELECT 1 FROM shopping_sync_outbox WHERE remote_id=? LIMIT 1", arrayOf(id)).use { it.moveToFirst() }
-                if (pending) blocked = true else applyRecord(db, entity, id, record)
+                if (pending) blocked = true else applyRecord(db, entity, id, record, preserveLocalCatalog = !advanceCursor)
                 revision = maxOf(revision, record.getValue("revision").jsonPrimitive.long)
             }
             // Re-read skipped rows after queued local operations have been acknowledged.
-            if (!blocked) setValue(db, "cursor", revision.toString())
+            if (!blocked && advanceCursor) setValue(db, "cursor", revision.toString())
         } finally { setValue(db, "applying", "0") }
     }
 
-    private fun applyRecord(db: SupportSQLiteDatabase, entity: String, id: String, record: JsonObject) {
+    private fun applyRecord(db: SupportSQLiteDatabase, entity: String, id: String, record: JsonObject, preserveLocalCatalog: Boolean = false) {
         require(entity in listOf("list", "catalog", "item"))
         var local = localId(db, entity, id)
         val table = definitions.first { it.second == entity }.first
@@ -208,7 +263,12 @@ class SyncStore(private val room: AppDatabase) {
                 values.put("qty", data.getValue("qty").jsonPrimitive.int)
                 values.put("checked", data.getValue("checked").jsonPrimitive.boolean)
                 values.put("isActive", data.getValue("active").jsonPrimitive.boolean)
-                values.put("catalogItemId", text("catalog_id")?.let { localId(db, "catalog", it) })
+                val personalCatalog = if (preserveLocalCatalog && local != null) {
+                    db.query("SELECT catalogItemId FROM items WHERE id=?", arrayOf(local)).use {
+                        if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else null
+                    }
+                } else null
+                values.put("catalogItemId", text("catalog_id")?.let { localId(db, "catalog", it) } ?: personalCatalog)
             }
         }
         val exists = local != null && db.query("SELECT 1 FROM $table WHERE id=?", arrayOf(local)).use { it.moveToFirst() }

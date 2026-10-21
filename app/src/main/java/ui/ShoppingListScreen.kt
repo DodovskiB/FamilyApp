@@ -21,10 +21,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.example.familyapp.viewmodel.MainMenuViewModel
+import com.example.familyapp.sync.SharingState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit) {
+fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
+                       sharing: SharingState? = null, onShare: (Long) -> Unit = {}) {
     val lists by viewModel.lists.collectAsState()
     val saving by viewModel.listSaving.collectAsState()
     val error by viewModel.listError.collectAsState()
@@ -72,6 +74,13 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit) {
         AlertDialog(
             onDismissRequest = { actionsId = null },
             title = { Text(list.name) },
+            text = {
+                if (sharing != null && sharing.access[list.id]?.role != "admin") {
+                    TextButton(enabled = sharing.ready && !sharing.busy, onClick = { actionsId = null; onShare(list.id) }) {
+                        Text("Share / Manage members")
+                    }
+                }
+            },
             confirmButton = {
                 TextButton(enabled = !saving, onClick = {
                     actionsId = null
@@ -82,7 +91,7 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit) {
             dismissButton = {
                 Row {
                     TextButton(onClick = { actionsId = null }) { Text("Cancel") }
-                    TextButton(enabled = !saving, onClick = {
+                    if (sharing == null || (sharing.ready && sharing.access[list.id]?.role != "admin")) TextButton(enabled = !saving, onClick = {
                         actionsId = null
                         deleteId = list.id
                     }) { Text("Delete", color = MaterialTheme.colorScheme.error) }

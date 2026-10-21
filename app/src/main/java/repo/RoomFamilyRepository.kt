@@ -112,6 +112,13 @@ class RoomFamilyRepository(private val db: AppDatabase, private val photos: Prod
     }
 
     override suspend fun deleteList(listId: Long) = db.withTransaction {
+        val sqlite = db.openHelper.writableDatabase
+        val sharingExists = sqlite.query("SELECT 1 FROM sqlite_master WHERE type='table' AND name='shopping_shared_access'").use { it.moveToFirst() }
+        if (sharingExists) {
+            val admin = sqlite.query("""SELECT 1 FROM shopping_shared_access a JOIN shopping_sync_map m
+                ON m.entity='list' AND m.remote_id=a.remote_id WHERE m.local_id=?""", arrayOf(listId)).use { it.moveToFirst() }
+            check(!admin) { "Only the Owner can delete a shared list" }
+        }
         itemDao.deleteByList(listId)
         listDao.deleteById(listId)
     }

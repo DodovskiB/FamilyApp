@@ -12,8 +12,9 @@ The owner requested saving this baseline to GitHub before beginning synchronizat
 That tag is the pre-sync baseline. Same-account cloud synchronization now passes
 build, storage, server access-control and live two-client tests. Note 20 displays
 Up to date with existing local contents retained. See docs/CLOUD_SYNC.md.
-Two-physical-phone acceptance remains pending. Invitations/shared-list permissions
-are not implemented yet.
+Two-physical-phone same-account online/offline/concurrent acceptance passed.
+Owner/Admin sharing and in-app invitations are implemented; cross-account physical
+acceptance is in progress. See docs/LIST_SHARING.md for current behavior and limits.
 
 Updated: 2026-10-19. Based on the user's Project Handover & Development Plan.
 

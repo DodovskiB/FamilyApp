@@ -124,3 +124,11 @@ and merging with a queued old-device entry preserved across both local databases
 The original SQL security suite and the new `supabase/tests/merge_imported_lists.sql`
 suite passed with fixtures rolled back. No user product names or credentials are
 included in committed fixtures; the actual-account repair script stays outside Git.
+
+## Owner/Admin implementation after the saved baseline
+
+Earlier sections describe historical checkpoints. Owner/Admin list sharing and
+in-app invitations are implemented and the server migration is deployed. See
+[LIST_SHARING.md](LIST_SHARING.md) for current behavior, tests and remaining
+cross-account physical acceptance. Same-account physical online/offline/concurrent
+testing passed before this phase. No new sharing changes have been pushed yet.

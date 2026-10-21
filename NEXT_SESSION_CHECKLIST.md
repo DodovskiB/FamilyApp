@@ -33,7 +33,7 @@ Offline/concurrent проверката исто помина: 3 -> незави
 - [ ] Прочитај AGENTS.md, PROJECT_HANDOVER.md, PLAN.md и docs/CLOUD_SYNC.md.
 - [ ] Провери Git status, последни commits и remote адреса.
 - [ ] Разликувај локални commits од потврден push. Последниот потврден GitHub
-  code checkpoint при подготовката е a037968; handover документацијата е понова.
+  code checkpoint е 8e14b05; новите sharing измени сè уште не се pushed.
 - [ ] Проект: C:\Users\bojan\StudioProjects\shopping-list-app, branch master.
 - [ ] Заштити непратени промени; направи checkpoint пред новата развојна фаза.
 - [ ] Пред промени на live податоци направи приватна резервна копија по потреба.
