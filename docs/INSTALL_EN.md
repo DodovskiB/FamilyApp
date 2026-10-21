@@ -1,4 +1,4 @@
-# Shopping List App — Installation Guide for Testers
+# Shopping List App — Installation & Update Guide (English)
 
 This is a free private Android preview, distributed as an APK file.
 Current APK: Shopping-List-App-1.1.1-preview.apk.
