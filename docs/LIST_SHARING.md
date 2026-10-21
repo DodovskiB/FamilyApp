@@ -64,8 +64,9 @@ Local repository and UI also prevent Admin list deletion.
 ## Verified / remaining
 
 - App APK, test APK and unit-test Gradle tasks passed; 3 unit tests passed.
-- 17 isolated phone tests passed: 2 sharing, 7 sync, 3 account isolation, 2 catalog,
-  3 list storage/migrations. Sharing checks routing, cached roles, private cursor,
+- 19 isolated phone tests passed on Honor: 2 sharing UI, 2 sharing storage, 7 sync,
+  3 account isolation, 2 catalog, 3 list storage/migrations. Sharing checks routing,
+  cached roles, private cursor,
   offline retention, revoked queue quarantine and local delete denial.
 - Existing 2 opt-in live sync tests passed against the real service with isolated DBs.
 - Original owner/merge SQL regressions and `supabase/tests/list_sharing.sql` passed
@@ -74,8 +75,19 @@ Local repository and UI also prevent Admin list deletion.
   and revocation. No real user email or UUID is included in the fixture tests.
 - Note 20 was privately backed up and update-installed without uninstall. Actual UI
   creation of a disposable Sharing test list/product and pending invitation succeeded.
-- Physical acceptance on a second account, including edits/revoke/offline and account
-  switching, is still pending. Do not call that verified until observed.
+- Physical two-account acceptance passed: recipient saw one addressed pending invitation,
+  accepted it, and viewed the shared entry. Admin changed 1/unchecked to 2/checked;
+  Owner confirmed and changed it to 3/unchecked; Honor directly displayed 3/unchecked.
+  Admin added a personal catalog product, re-added it as qty 2 without a duplicate,
+  and removed the entry. Admin list actions showed Rename and Cancel only.
+- With Honor offline, Admin incremented the test entry to 4. A private backup verified
+  exactly one pending operation. Owner revoked access via the real management UI.
+  After reconnect the list disappeared. Backup validation found no shared access,
+  no pending operations, no shared entries and exactly one quarantined +1. Three
+  personal lists remained; the old account's list/item/catalog tables were unchanged.
+  Honor's disposable personal product was removed; Account showed Up to date.
+- Final Note 20 APK update and owner-side cleanup/quantity confirmation are pending.
+  Do not remove or share any real list automatically.
 
 Cloud photos and product-link attachment sharing are not included in this first
 sharing pass: shared entries expose title/category/qty/check/active snapshots;

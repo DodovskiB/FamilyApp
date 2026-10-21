@@ -13,7 +13,8 @@ Note 20 е ажуриран и онлајн двонасочниот тест с
 (2/unchecked од Note 20 до Honor; 3/checked од Honor назад до Note 20).
 Offline/concurrent проверката исто помина: 3 -> независно +1 на двата уреда ->
 5/unchecked на двата по reconnect. Привремените записи се отстранети преку Note 20.
-Следен развоен приоритет: server-enforced Owner/Admin пристап, па UI покани.
+Owner/Admin и in-app поканите сега се имплементирани; physical online/revoke
+проверките поминаа. Види ја последната checkpoint секција и docs/LIST_SHARING.md.
 
 ## 1. Подготовка од корисникот
 
@@ -61,35 +62,35 @@ Sync работи додека app е отворена, не како background
 
 ## 4. Втор приоритет: безбедна основа за Owner/Admin sharing
 
-- [ ] Прегледај го постојниот owner-only cloud schema и подготви миграција што
+- [x] Прегледај го постојниот owner-only cloud schema и подготви миграција што
   ги задржува постојните листи, UUID mappings, queues и податоци.
-- [ ] Дефинирај list ownership, membership и invitation lifecycle, со јасни
+- [x] Дефинирај list ownership, membership и invitation lifecycle, со јасни
   правила за прифаќање, одбивање, истекување/откажување и повторена покана.
-- [ ] Имплементирај server-enforced пристап само до конкретната споделена листа.
-- [ ] Единствен Owner; поканетите се Admins; нема Viewer.
+- [x] Имплементирај server-enforced пристап само до конкретната споделена листа.
+- [x] Единствен Owner; поканетите се Admins; нема Viewer.
 - [ ] Двете улоги можат да менуваат entries, qty/check, име на листата и
   да користат идно Clear purchased. Само Owner управува со членовите и ја брише листата.
-- [ ] Не откривај личен каталог, други приватни листи или туѓи accounts.
-- [ ] Приспособи sync да презема дозволени shared lists со ист идентитет за
+- [x] Не откривај личен каталог, други приватни листи или туѓи accounts.
+- [x] Приспособи sync да презема дозволени shared lists со ист идентитет за
   сите членови; спречи погрешно презапишување ownership при upload/import.
-- [ ] Дефинирај што се случува со локалната копија и offline queued edits по
+- [x] Дефинирај што се случува со локалната копија и offline queued edits по
   одземање пристап. Server мора да одбие нови недозволени промени.
-- [ ] Тестови со различни accounts: Owner дозволено, Admin дозволено,
+- [x] Тестови со различни accounts: Owner дозволено, Admin дозволено,
   непоканет корисник одбиен, друга приватна листа невидлива, revoked член одбиен.
 
 Критериум: дозволите се на серверот и се проверени пред да ја додадеме invite UI.
 
 ## 5. Трет приоритет: покани и тест со различни accounts
 
-- [ ] Owner преку long press на листата добива Share / Manage members.
-- [ ] Покана адресирана на email; листа со pending invitations за соодветниот account.
-- [ ] Accept / Decline и прикажување на прифатената листа на home.
-- [ ] Owner може да види членови и да отповика пристап.
-- [ ] На другите accounts по потреба додади Google OAuth test-user пристап.
-- [ ] Провери два физички телефона со различни accounts и една споделена листа.
+- [x] Owner преку long press на листата добива Share / Manage members.
+- [x] Покана адресирана на email; листа со pending invitations за соодветниот account.
+- [x] Accept / Decline и прикажување на прифатената листа на home.
+- [x] Owner може да види членови и да отповика пристап.
+- [x] На другите accounts по потреба додади Google OAuth test-user пристап.
+- [x] Провери два физички телефона со различни accounts и една споделена листа.
 - [ ] Провери дека Admin ги гледа сите entries и може да додава, менува,
   отстранува, check/uncheck, а приватните листи на Owner не ги гледа.
-- [ ] Провери revoke, sign-out/account switch и offline/reconnect.
+- [x] Провери revoke, sign-out/account switch и offline/reconnect.
 
 Почнуваме со in-app покани. Автоматски email пораки не се вклучени;
 не додавај email сервис или праќање пораки без посебен договор.
@@ -109,6 +110,9 @@ Sync работи додека app е отворена, не како background
 - [ ] Подготовка на APK за мал круг тестери со соодветно потпишување и
   зачуван клуч за идни updates. Не објавувај инсталер пред договор за дистрибуција.
 - [ ] Избери начин за испорака на APK/download линк; Google Play е подоцнежна фаза.
+- [ ] Пред поширока дистрибуција: Google Branding verification за името/логото
+  Shopping List App на Google consent screen. Browser OAuth засега го покажува
+  Supabase project доменот. Не активирај платен custom domain без одобрение.
 
 ## 7. Завршување на секоја сесија
 
@@ -126,3 +130,14 @@ Sync работи додека app е отворена, не како background
 > Почни со проверка на same-account sync на два физички телефона. Ако помине,
 > продолжи со Owner/Admin list sharing според договорените правила. Зачувај ги
 > постојните податоци, без платени сервиси и без push без мое одобрение.
+
+## Owner/Admin checkpoint after 7480dd7
+
+In-app invitations and the server-enforced Owner/Admin model are implemented.
+19 isolated Honor tests (including 2 UI tests), 3 unit tests, 2 live sync tests
+and SQL security/lifecycle regressions passed. Two physical accounts passed
+online edits in both directions and offline revocation with queue quarantine.
+See docs/LIST_SHARING.md for the observed proof and remaining pilot limitations.
+Final Note 20 update/temporary-data cleanup is in progress. Clear purchased and
+cloud photo/link sharing are still later work; unchecked combined requirements
+containing those features are deliberately left unchecked.

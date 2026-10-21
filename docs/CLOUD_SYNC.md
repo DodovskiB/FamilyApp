@@ -130,5 +130,6 @@ included in committed fixtures; the actual-account repair script stays outside G
 Earlier sections describe historical checkpoints. Owner/Admin list sharing and
 in-app invitations are implemented and the server migration is deployed. See
 [LIST_SHARING.md](LIST_SHARING.md) for current behavior, tests and remaining
-cross-account physical acceptance. Same-account physical online/offline/concurrent
-testing passed before this phase. No new sharing changes have been pushed yet.
+cross-account physical acceptance. Two-account online edits and offline revocation
+now passed; final Note 20 APK update/test-data cleanup remains pending. No new
+sharing changes have been pushed yet.

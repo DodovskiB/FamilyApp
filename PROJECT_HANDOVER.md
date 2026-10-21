@@ -19,8 +19,9 @@
 > repository https://github.com/DodovskiB/shopping-list-app, не правиме нов проект.
 > Прво провери до кој commit имаш пристап и спореди со тековниот код. Кажи што
 > можеш реално да читаш/менуваш во оваа сесија. Следната проверка е синхронизација
-> и нејзината последна потврдена состојба на два телефона; основниот online/offline
-> тест веќе помина. Следна развојна фаза е Owner/Admin пристап по листа и покани.
+> и нејзината последна потврдена состојба на два телефона; online/offline тестот
+> помина и со различни accounts. Owner/Admin sharing е имплементиран; прочитај
+> docs/LIST_SHARING.md за последната acceptance состојба и ограничувањата.
 > Зачувај ги постојните податоци и не прави push без мое одобрение.
 
 Само прикачувањето на документот не дава пристап до локалните фајлови, Android
@@ -46,8 +47,8 @@ Studio, телефоните или најавените browser tabs. Ако н
 
 Корисникот потврди успешен push на `master` до **8e14b05** на 21 октомври 2026.
 Тој ги содржи duplicate-import поправката, серверскиот merge и потврдениот физички
-online/offline/concurrent тест. Новите Owner/Admin sharing измени се понови локални
-промени; нивен push сè уште не е одобрен или потврден. Види docs/LIST_SHARING.md
+online/offline/concurrent тест. Локалниот commit **7480dd7** додава Owner/Admin
+sharing и in-app покани; негов push не е одобрен или потврден. Види docs/LIST_SHARING.md
 за имплементацијата, тестовите и тековниот cross-account acceptance gate.
 
 | Commit / tag | Содржина |
@@ -275,3 +276,30 @@ build со local catalog association поправката. Ажурирај Note
 Следно: заврши physical acceptance, offline/revoke/account isolation, исчисти
 само тест записи и направи локален commit. Нема одобрение за push на новите измени.
 Последниот потврден GitHub checkpoint останува 8e14b05.
+
+## Потврден physical sharing acceptance — по 7480dd7
+
+Honor е најавен со различен Google account; рачниот sign-out/sign-in помина.
+Поканата се појави пред прифаќање. По Accept се појави само дозволената shared
+листа, покрај новите лични defaults. Admin измени qty/check 1/false -> 2/true;
+Owner го потврди на Note 20 и измени 3/false; тоа е директно видено на Honor.
+Admin додаде сопствен тест-производ, повторно го додаде како qty 2 без дупла
+entry, и го отстрани од листата. Неговите list actions имаа само Rename/Cancel.
+19 изолирани instrumentation tests (2 UI, 2 sharing storage, 15 претходни) поминаа
+на Honor со последниот main APK; новиот test APK исто е изграден и инсталиран.
+
+Honor потоа беше offline; тест-количината стана 4. Приватен backup потврди 1
+pending operation. Owner преку Note 20 UI го одзеде пристапот. По reconnect
+листата исчезна од Honor. Втор backup потврди 0 shared access, 0 pending, 0 entries,
+3 лични листи и 1 quarantined delta +1. List/item/catalog табелите на претходниот
+account останаа точно исти меѓу backup-ите. Привремениот Admin catalog производ
+е избришан; Honor Account покажува Up to date. Нема споделено вистинска корисничка
+листа автоматски. Тест-поканата е отповикана.
+
+Во тек: се чека Note 20 повторно на USB за последниот APK update, owner-side
+проверка дека количината останала 3/false и чистење само на Sharing test / Sharing
+test product. Не тврди дека ова последно чистење е веќе направено. Нема одобрение
+за push. Google branding verification е запишан во чек-листата пред поширока
+дистрибуција; не активирај платен Supabase custom domain. Корисникот сака бесплатен
+пилот; името Shopping List App веќе е поставено, Google сè уште може да го покажува
+Supabase redirect доменот.
