@@ -37,6 +37,10 @@ class SupabaseSyncTransport(private val accounts: AccountRepository, private val
     override suspend fun pull(afterRevision: Long): JsonArray =
         Json.parseToJsonElement(rpc("shopping_sync_pull", buildJsonObject { put("after_revision", afterRevision) })).jsonArray
 
+    suspend fun mergeLists(sourceId: String, targetId: String) {
+        rpc("shopping_sync_merge_lists", buildJsonObject { put("source_id", sourceId); put("target_id", targetId) })
+    }
+
     companion object {
         private val http = HttpClient(Android) {
             install(HttpTimeout) { requestTimeoutMillis = 15_000; connectTimeoutMillis = 10_000 }

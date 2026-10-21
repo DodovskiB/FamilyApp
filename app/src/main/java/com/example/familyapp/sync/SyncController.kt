@@ -9,12 +9,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.*
 
-data class SyncStatus(val message: String = "Connecting…", val pending: Int = 0, val ready: Boolean = false)
+data class SyncStatus(val message: String = "Connecting…", val pending: Int = 0, val ready: Boolean = false,
+                      val needsImportChoice: Boolean = false)
 
 class SyncController(db: AppDatabase, private val remote: SyncTransport) {
     val store = SyncStore(db)
     private val mutableStatus = MutableStateFlow(SyncStatus())
     val status = mutableStatus.asStateFlow()
+
+    suspend fun chooseImport(merge: Boolean) { store.chooseImport(merge) }
 
     private suspend fun download(after: Long): JsonArray {
         val records = linkedMapOf<String, JsonElement>()
@@ -40,6 +43,17 @@ class SyncController(db: AppDatabase, private val remote: SyncTransport) {
         if (!store.hasInitialDownload()) {
             val initial = download(0)
             if (initial.isNotEmpty()) store.discardPristineDefaults()
+            val matches = store.matchingInitialLists(initial)
+            if (matches.isNotEmpty()) {
+                when (store.importChoice()) {
+                    "pending" -> {
+                        mutableStatus.value = SyncStatus("This phone and your account have matching list names. Open Account to choose how to connect them.",
+                            store.pendingCount(), needsImportChoice = true)
+                        return
+                    }
+                    "merge" -> store.mergeInitialLists(matches)
+                }
+            }
             store.apply(initial)
             if (initial.isEmpty()) initializeDefaults()
             store.finishInitialDownload()

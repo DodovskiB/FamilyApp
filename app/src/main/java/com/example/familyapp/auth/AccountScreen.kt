@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -23,9 +25,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun AccountScreen(state: AccountState, onSignIn: () -> Unit, onSignOut: () -> Unit,
                   syncStatus: SyncStatus? = null,
+                  onImportChoice: ((Boolean) -> Unit)? = null,
                   onBack: (() -> Unit)? = null) {
     Surface(Modifier.fillMaxSize()) {
-        Column(Modifier.safeDrawingPadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(Modifier.safeDrawingPadding().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("${stringResource(R.string.app_name)} account", style = MaterialTheme.typography.headlineMedium)
             if (state.loading) {
                 CircularProgressIndicator()
@@ -36,6 +39,11 @@ fun AccountScreen(state: AccountState, onSignIn: () -> Unit, onSignOut: () -> Un
                 syncStatus?.let {
                     Text(it.message)
                     if (it.pending > 0) Text("${it.pending} changes waiting to sync")
+                    if (it.needsImportChoice && onImportChoice != null) {
+                        Text("Combine matching lists to keep every product entry, quantity and purchased status. Products are not deduplicated. Or keep this phone's lists separate.")
+                        Button(onClick = { onImportChoice(true) }) { Text("Combine matching lists") }
+                        TextButton(onClick = { onImportChoice(false) }) { Text("Keep lists separate") }
+                    }
                 }
                 Text("Lists sync while the app is open. Product photos are currently saved on this phone.")
                 Button(onClick = onSignOut, enabled = !state.busy) { Text("Sign out") }

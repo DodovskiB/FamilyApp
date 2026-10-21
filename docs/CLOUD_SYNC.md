@@ -73,3 +73,41 @@ adb shell am instrument -w -e syncLive true -e class com.example.familyapp.LiveS
 ```
 
 Normal test runs skip the live-service test.
+
+## First sign-in collision repair — 2026-10-21
+
+Physical Honor testing exposed a gap: a previously used phone with three populated
+local lists imported its own records alongside the account's three cloud lists.
+Matching display names do not imply matching UUIDs. The initial implementation only
+discarded completely untouched empty defaults, so it intentionally preserved both
+data sets but presented duplicate names without explaining the choice.
+
+First sync now pauses before upload/download application when unambiguous imported
+list names match existing account list names. Account asks whether to combine them
+or keep them separate. The choice is persisted. Combining remaps the unuploaded
+local list identity, removes its initial list insert and redirects queued item parent
+IDs. Item rows, quantities, checked states and catalog records remain independent.
+Ambiguous names (multiple candidates on either side) are not automatically combined.
+Already synchronized cloud lists are never merged by a name-only heuristic.
+
+The owner explicitly approved combining the three existing duplicate pairs while
+keeping all six item entries. Before repair, both pre-update and post-sign-in Honor
+backups were saved privately. The migration
+`supabase/migrations/20261021223000_merge_imported_lists.sql` adds an owner-scoped,
+idempotent merge RPC and updates the apply RPC to redirect queued old-parent item
+writes through explicit merged-list tombstones. Run it after the original owner-sync
+migration. All entries are moved unchanged; catalogs are not deduplicated.
+
+The approved live repair ran in one transaction with full before/after item-field
+and catalog comparisons. A subsequent Honor backup verified exactly three lists,
+all six item entries unchanged except parent list, and all five catalog rows unchanged.
+Updated Honor displayed Up to date after cold launch. Note 20 update/physical
+cross-device acceptance remains pending.
+
+Validation: app/test builds and three unit tests passed. On Honor, 15 isolated device
+tests passed, including explicit combine/separate choices, ambiguity and retry.
+Both opt-in live tests passed against the service: normal two-client convergence,
+and merging with a queued old-device entry preserved across both local databases.
+The original SQL security suite and the new `supabase/tests/merge_imported_lists.sql`
+suite passed with fixtures rolled back. No user product names or credentials are
+included in committed fixtures; the actual-account repair script stays outside Git.

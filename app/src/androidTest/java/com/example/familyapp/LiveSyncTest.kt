@@ -25,6 +25,52 @@ import repo.RoomFamilyRepository
  * Never opens or modifies the user's real local Room database. */
 @RunWith(AndroidJUnit4::class)
 class LiveSyncTest {
+    @Test fun mergedListsKeepEveryEntryAndRedirectQueuedOldDeviceWrites() = runBlocking {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("syncLive") == "true")
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val accounts = AccountRepository.getInstance(context)
+        val session = withTimeout(30_000) {
+            requireNotNull(accounts.status).filterIsInstance<SessionStatus.Authenticated>().first()
+        }
+        val remote = SupabaseSyncTransport(accounts, requireNotNull(session.session.user).id)
+        val names = List(2) { "live-merge-test-${UUID.randomUUID()}.db" }
+        val dbs = names.map { Room.databaseBuilder(context, AppDatabase::class.java, it).build() }
+        val controllers = dbs.map { SyncController(it, remote) }
+        val repos = dbs.map { RoomFamilyRepository(it) }
+        val title = "Disposable merge verification ${UUID.randomUUID()}"
+        val cleanup = mutableListOf<String>()
+        try {
+            controllers.forEach { it.synchronize() }
+            val source = repos[0].addList(title, 1001)
+            val target = repos[0].addList(title, 1002)
+            val pending = controllers[0].store.pending().map { it.json }
+            cleanup.addAll(pending.map { it.getValue("id").jsonPrimitive.content })
+            val checked = repos[0].addItem(source, "First disposable product", 0)
+            repos[0].setQty(checked, 4); repos[0].toggleChecked(checked, true)
+            repos[0].addItem(target, "Second disposable product", 0)
+            controllers[0].synchronize(); controllers[1].synchronize()
+            val sourceB = repos[1].getLists().single { it.name == title && it.sortOrder == 1001 }.id
+            repos[1].addItem(sourceB, "Queued offline disposable product", 0)
+            remote.mergeLists(cleanup[0], cleanup[1])
+            controllers[1].synchronize(); controllers[0].synchronize()
+            for (index in 0..1) {
+                val list = repos[index].getLists().single { it.name == title }
+                val items = repos[index].getItems(list.id, 0)
+                assertEquals(3, items.size)
+                assertTrue(items.single { it.title == "First disposable product" }.checked)
+                assertEquals(4, items.single { it.title == "First disposable product" }.qty)
+                assertFalse(items.single { it.title == "Queued offline disposable product" }.checked)
+            }
+        } finally {
+            try {
+                cleanup.forEach { id -> remote.apply(buildJsonArray { add(buildJsonObject {
+                    put("operation_id", UUID.randomUUID().toString()); put("entity", "list")
+                    put("id", id); put("action", "delete"); put("body", buildJsonObject {})
+                }) }) }
+            } finally { dbs.forEach { it.close() }; names.forEach { context.deleteDatabase(it) } }
+        }
+    }
+
     @Test fun twoClientsConvergeAgainstRealService() = runBlocking {
         assumeTrue(InstrumentationRegistry.getArguments().getString("syncLive") == "true")
         val context = InstrumentationRegistry.getInstrumentation().targetContext

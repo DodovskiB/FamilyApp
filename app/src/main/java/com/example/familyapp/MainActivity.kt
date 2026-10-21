@@ -7,6 +7,8 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -55,6 +57,7 @@ class MainActivity : ComponentActivity() {
                     account.userId?.let { SyncController(db, SupabaseSyncTransport(AccountRepository.getInstance(applicationContext), it)) }
                 }
                 val syncStatus = sync?.status?.collectAsState()?.value
+                val scope = rememberCoroutineScope()
                 LaunchedEffect(sync) {
                     sync?.let { controller ->
                         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -64,9 +67,10 @@ class MainActivity : ComponentActivity() {
                 }
                 var accountOpen by rememberSaveable { mutableStateOf(false) }
                 val locked = account.loading || (account.requiresSignIn && account.userId == null)
-                if (accountOpen || locked) {
+                if (accountOpen || locked || syncStatus?.needsImportChoice == true) {
                     AccountScreen(account, accountViewModel::signIn, accountViewModel::signOut,
                         syncStatus = syncStatus,
+                        onImportChoice = { merge -> scope.launch { sync?.chooseImport(merge) } },
                         onBack = if (locked) null else ({ accountOpen = false }))
                     BackHandler(enabled = !locked) { accountOpen = false }
                 } else {

@@ -12,7 +12,7 @@ class SyncStore(private val room: AppDatabase) {
 
     suspend fun prepare() = transaction { db ->
         db.execSQL("CREATE TABLE IF NOT EXISTS shopping_sync_meta (name TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)")
-        listOf("applying" to "0", "enabled" to "0", "seeded" to "0", "downloaded" to "0", "cursor" to "0").forEach {
+        listOf("applying" to "0", "enabled" to "0", "seeded" to "0", "downloaded" to "0", "cursor" to "0", "import_choice" to "pending").forEach {
             db.execSQL("INSERT OR IGNORE INTO shopping_sync_meta VALUES (?, ?)", arrayOf(it.first, it.second))
         }
         db.execSQL("CREATE TABLE IF NOT EXISTS shopping_sync_map (entity TEXT NOT NULL, local_id INTEGER NOT NULL, remote_id TEXT NOT NULL UNIQUE, initialized INTEGER NOT NULL, PRIMARY KEY(entity,local_id))")
@@ -42,6 +42,41 @@ class SyncStore(private val room: AppDatabase) {
     suspend fun isSeeded(): Boolean = transaction { value(it, "seeded") == "1" }
     suspend fun hasInitialDownload(): Boolean = transaction { value(it, "downloaded") == "1" }
     suspend fun finishInitialDownload() = transaction { setValue(it, "downloaded", "1") }
+    suspend fun chooseImport(merge: Boolean) = transaction { setValue(it, "import_choice", if (merge) "merge" else "separate") }
+    suspend fun importChoice(): String = transaction { value(it, "import_choice") }
+
+    /** Only unuploaded list imports are eligible. Names alone never merge existing cloud lists. */
+    suspend fun matchingInitialLists(records: JsonArray): Map<Long, String> = transaction { db ->
+        val remote = records.filter { it.jsonObject["entity"]?.jsonPrimitive?.content == "list" &&
+            it.jsonObject["deleted"]?.jsonPrimitive?.boolean == false }
+            .groupBy { it.jsonObject.getValue("body").jsonObject.getValue("name").jsonPrimitive.content.trim().lowercase(java.util.Locale.ROOT) }
+        db.query("""SELECT l.id,l.name,m.remote_id FROM lists l JOIN shopping_sync_map m
+            ON m.entity='list' AND m.local_id=l.id WHERE EXISTS
+            (SELECT 1 FROM shopping_sync_outbox o WHERE o.entity='list' AND o.remote_id=m.remote_id AND o.action='insert')""").use { cursor ->
+            buildMap<Long, String> {
+                while (cursor.moveToNext()) {
+                    val candidates = remote[cursor.getString(1).trim().lowercase(java.util.Locale.ROOT)].orEmpty()
+                    if (candidates.size == 1) {
+                        val id = candidates.single().jsonObject.getValue("id").jsonPrimitive.content
+                        if (id != cursor.getString(2)) put(cursor.getLong(0), id)
+                    }
+                }
+            }.let { matches -> matches.filterValues { id -> matches.values.count { it == id } == 1 } }
+        }
+    }
+
+    suspend fun mergeInitialLists(matches: Map<Long, String>) = transaction { db ->
+        matches.forEach { (local, remote) ->
+            val old = db.query("SELECT remote_id FROM shopping_sync_map WHERE entity='list' AND local_id=?", arrayOf(local)).use {
+                check(it.moveToFirst()); it.getString(0)
+            }
+            // The cloud row adopts this local identity; item snapshots/quantities stay intact.
+            db.execSQL("UPDATE shopping_sync_outbox SET parent_id=? WHERE parent_id=?", arrayOf(remote, old))
+            db.execSQL("DELETE FROM shopping_sync_outbox WHERE entity='list' AND remote_id=? AND action='insert'", arrayOf(old))
+            db.execSQL("UPDATE shopping_sync_outbox SET remote_id=? WHERE entity='list' AND remote_id=?", arrayOf(remote, old))
+            db.execSQL("UPDATE shopping_sync_map SET remote_id=? WHERE entity='list' AND local_id=?", arrayOf<Any>(remote, local))
+        }
+    }
     suspend fun cursor(): Long = transaction { value(it, "cursor").toLong() }
     suspend fun pendingCount(): Int = transaction { db ->
         db.query("SELECT count(*) FROM shopping_sync_outbox").use { it.moveToFirst(); it.getInt(0) }
