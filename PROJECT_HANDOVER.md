@@ -470,3 +470,15 @@ Owner ќе инсталира утре; тогаш проверете Google ema
 fresh install/login/list invitation. Приватниот signing folder и претходните
 правила за debug -> release миграција остануваат исти. Не uninstall лични телефони.
 Последен owner-confirmed GitHub push: 7e4afb3. Оваа label корекција е локална.
+
+## Note 20 update — 22 октомври 2026
+
+Owner потврди push до d19ca1a и побара update на Note 20. Изграден е најновиот
+DEBUG APK (1.1.1-preview, versionCode 3) со оригиналниот debug key; shell Gradle
+овојпат :app:assembleDebug помина за 5s. Приватен pre/post DB/files/prefs backup
+е зачуван надвор од Git. adb install -r помина без uninstall. Реален UI: drawer
+Product catalog и истоимен наслов се потврдени, со сите 5 постојни производи.
+Account останува најавен и покажува Up to date. Пред/по comparison потврди сите
+оригинални list/item/catalog полиња непроменети, 0 pending. Honor останува со
+претходната EN/MK debug верзија; новиот release APK за сопругата е одделен,
+со release key како што е документирано. Нема промени на код или нови features.
