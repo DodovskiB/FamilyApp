@@ -8,6 +8,7 @@ import com.example.familyapp.data.DefaultShoppingLists
 import com.example.familyapp.data.db.AppDatabase
 import com.example.familyapp.data.entity.ListEntity
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,8 +26,15 @@ class DefaultShoppingListsTest {
             DefaultShoppingLists.initialize(db, prefs)
             val initial = db.listDao().getAll()
             assertEquals(listOf("Home", "Weekend House", "Vacation"), initial.map { it.name })
+            assertTrue(db.catalogItemDao().observeAll().first().isEmpty())
+            db.openHelper.readableDatabase.query("SELECT COUNT(*) FROM items").use {
+                assertTrue(it.moveToFirst()); assertEquals(0, it.getInt(0))
+            }
             DefaultShoppingLists.initialize(db, prefs)
             assertEquals(initial, db.listDao().getAll())
+            db.listDao().rename(initial.first().id, "My home")
+            DefaultShoppingLists.initialize(db, prefs)
+            assertEquals("My home", db.listDao().getById(initial.first().id)?.name)
             initial.forEach { db.listDao().deleteById(it.id) }
             DefaultShoppingLists.initialize(db, prefs)
             assertTrue(db.listDao().getAll().isEmpty())

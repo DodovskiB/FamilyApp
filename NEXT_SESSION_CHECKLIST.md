@@ -176,3 +176,12 @@ App/test build и 5 UI tests поминаа; Note 20 ажуриран, ориг�
 - [ ] Следен двонасочен purchased/shared edit тест по потреба.
 - [ ] Договор со owner дали да подготвиме Play Internal testing (US$25 developer регистрација)
       или засега директен APK. Нема одобрен Play upload/уплата.
+
+## Бесплатен APK preview — следно
+
+- [x] 1.1-preview/2 release APK изграден, потпишан и signature/manifest/content проверен.
+- [x] Initial empty catalog/entries, rename/delete/default persistence и account isolation: 5 checks pass.
+- [ ] Owner: offline backup на приватниот .android/shopping-list-app-signing folder.
+- [ ] Прв new tester: Google email, OAuth audience проверка, fresh APK install и login/sharing проба.
+- [ ] Не заменувај debug Note 20/Honor со release APK без договорена миграција.
+- [ ] Owner push на packaging code/docs: git push origin master. Нема јавен APK upload.

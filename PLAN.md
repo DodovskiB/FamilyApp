@@ -202,3 +202,13 @@ Cyrillic optional and persistent. Translate app UI/status/accessibility, preserv
 stored names. See docs/LANGUAGES.md. After Note 20 verification, update Honor with
 all purchased, drawer and language changes and verify language persistence there.
 Last owner-confirmed GitHub checkpoint is 60a07e0; newer work is local until pushed.
+
+## Free APK preview — owner approved 2026-10-22
+
+Use direct signed APK distribution for now, no paid Play registration or hosting.
+Fresh installs: Home, Weekend House, Vacation; editable/deletable, empty entries
+and personal catalog. Preserve existing account data on sign-in. Preview 1.1-preview
+(versionCode 2), dedicated private release certificate for new testers. Existing
+debug-signed personal test phones are not replaced/uninstalled. See
+ docs/PRIVATE_APK_DISTRIBUTION.md for build, signing, updates and limitations.
+No automatic updater or catalog rename/ephemeral-product feature is approved here.

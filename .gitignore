@@ -13,3 +13,12 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Private signing material and packaged binaries never belong in source control.
+*.jks
+*.keystore
+*.p12
+keystore.properties
+release-keystore-password.txt
+*.apk
+*.aab

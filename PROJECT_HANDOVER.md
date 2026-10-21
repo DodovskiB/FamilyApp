@@ -414,3 +414,42 @@ Play тестер пристап и list-sharing дозволи се посеб�
 https://support.google.com/googleplay/android-developer/answer/9845334
 https://support.google.com/googleplay/android-developer/answer/6112435
 https://support.google.com/googleplay/android-developer/answer/14151465
+
+## Бесплатна APK дистрибуција — 22 октомври 2026
+
+Owner одбра бесплатно директно APK споделување, без Play регистрација. Посака
+нов корисник да почне со 3 default листи, без производи, со rename/delete. Ова
+веќе е постојниот initializer; дополнети се isolated checks за празен каталог,
+празни entries и зачувано преименување по повторна initialize. 2 default checks
+и 3 account-isolation checks поминаа на Honor. Нема промени во runtime DAO/Repo/UI.
+versionName = 1.1-preview, versionCode = 2. Release/test APK build во IDE помина.
+
+Создаден е приватен release signing key во Windows user .android/shopping-list-app-signing,
+надвор од Git. Целиот folder (p12 и password file) треба owner да го зачува offline.
+Никогаш не печати password или не праќај го во chat/GitHub. Повторно користи го
+истиот key за update; не регенерирај. scripts/Package-PrivateApk.ps1 го потпишува
+unsigned release APK и ја верификува сигнатурата. Во sandbox користи експлицитен
+-SdkDirectory C:\Users\bojan\AppData\Local\Android\Sdk (LOCALAPPDATA е redirected).
+Јавниот APK е во chat workspace како Shopping-List-App-1.1-preview.apk, 1.1-preview/2,
+потпис v2/v3 проверен; non-debuggable и без DB/prefs/keystore во zip. Конфигурацијата
+за постојниот backend е вклучена. SHA256:
+1F998C2E3B5BA80C793F04E701BE1523FC061C48740DCA16EFB73E1C335D5FD6
+Упатство за тестери: Shopping_List_App_Install_MK.md во workspace.
+
+Ова е release candidate за нови инсталации: не е направен fresh physical install
+или Google end-to-end тест со release сертификатот. Debug phone isolated checks
+го потврдуваат истиот initializer/account isolation. Потребна е проба со нов тестер
+и проверка дали неговиот Google email е дозволен во OAuth Testing audience пред
+споделување на поширока група. Не е направен јавен upload, испраќање или платена услуга.
+
+ВАЖНО: Note 20/Honor се со DEBUG signing key. Новиот release certificate не може
+да ги update-replace тие APK-и. Не uninstall/clear data. За миграција на тие уреди
+треба посебен data-preserving договор. За новите тестери release -> release
+update со ист key/applicationId и зголемен versionCode ги задржува податоците.
+
+Owner праша за каталогот: објаснето е дека посебен каталог е опционален, но entries
+мора да се чуваат за трајни листи. Препораката е каталогот да се задржи за повторна
+употреба, пребарување, photos/links и идни barcode/favorites/prices. Products или
+Product catalog е појасно име; нема одобрено/направено UI преименување или нови функции.
+Последен потврден GitHub checkpoint е 3bc94dc (owner push виден во IDE и origin/master).
+Оваа packaging фаза е локална додека owner не ја push-не.
