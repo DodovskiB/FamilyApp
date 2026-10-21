@@ -185,3 +185,11 @@ App/test build и 5 UI tests поминаа; Note 20 ажуриран, ориг�
 - [ ] Прв new tester: Google email, OAuth audience проверка, fresh APK install и login/sharing проба.
 - [ ] Не заменувај debug Note 20/Honor со release APK без договорена миграција.
 - [ ] Owner push на packaging code/docs: git push origin master. Нема јавен APK upload.
+
+## Утрешна проба кај сопругата
+
+- [x] Нов release APK 1.1.1-preview/3 со Product catalog / Каталог на производи.
+- [x] Release/test build и signature verification поминаа; истиот release key.
+- [ ] Користи го новиот 1.1.1-preview APK за новиот телефон.
+- [ ] Провери Google email/OAuth audience, fresh defaults, login и sharing.
+- [ ] Owner push за rename commit: git push origin master.

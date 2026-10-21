@@ -57,7 +57,7 @@ class ProductLinkUiTest {
     fun linksCanBeValidatedEditedOpenedAndRemovedInCatalogAndList() {
         compose.onNodeWithText("New list name").assertDoesNotExist()
         compose.onNodeWithContentDescription("Open menu").performClick()
-        compose.onNodeWithText("Item list", substring = false).performClick()
+        compose.onNodeWithText("Product catalog", substring = false).performClick()
         compose.waitUntil(5_000) { vm.catalogItems.value.isNotEmpty() }
         holdMilk()
         compose.onNodeWithText("Add link", substring = false).performClick()

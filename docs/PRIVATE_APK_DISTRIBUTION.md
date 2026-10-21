@@ -1,7 +1,7 @@
 # Free private APK distribution
 
 Approved 2026-10-22: distribute a signed APK directly, with no Play Console purchase
-or paid hosting. Initial preview: versionName 1.1-preview, versionCode 2.
+or paid hosting. Current preview: versionName 1.1.1-preview, versionCode 3.
 
 ## First use
 
@@ -48,9 +48,9 @@ If Google OAuth is still in Testing, add each tester's Google email to its audie
 before testing sign-in. Do not promise unrestricted login until checked with a new
 allowed tester. Current photos/links and personal catalog are not cloud-shared.
 
-## Catalog recommendation (not an approved rename)
+## Catalog name (approved 2026-10-22)
 
-`Item list` is grammatical; `Products` or `Product catalog` is clearer. Keep the
+The owner chose `Product catalog` for both drawer and screen title (MK: Каталог на производи). Keep the
 catalog initially empty. Persistence enables prefix suggestions, reusable products,
 photos and links. Potential later features: barcode lookup, favorites, frequently
 bought products and price history. None is added by this packaging work.

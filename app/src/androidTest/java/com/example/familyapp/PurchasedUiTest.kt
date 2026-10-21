@@ -83,7 +83,7 @@ class PurchasedUiTest {
             compose.onNodeWithContentDescription("Open menu").performClick()
             // Only the underlying home button exists; no second drawer destination.
             compose.onAllNodesWithText("New list").assertCountEquals(1)
-            listOf("Test account", "Invitations (0)", "Shopping lists", "Item list").zipWithNext().forEach { (above, below) ->
+            listOf("Test account", "Invitations (0)", "Shopping lists", "Product catalog").zipWithNext().forEach { (above, below) ->
                 assertTrue(compose.onNodeWithText(above).fetchSemanticsNode().boundsInRoot.top <
                     compose.onNodeWithText(below).fetchSemanticsNode().boundsInRoot.top)
             }

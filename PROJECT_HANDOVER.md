@@ -453,3 +453,20 @@ Owner праша за каталогот: објаснето е дека пос�
 Product catalog е појасно име; нема одобрено/направено UI преименување или нови функции.
 Последен потврден GitHub checkpoint е 3bc94dc (owner push виден во IDE и origin/master).
 Оваа packaging фаза е локална додека owner не ја push-не.
+
+## Product catalog — 22 октомври 2026
+
+Owner го избра името Product catalog. Сменети се EN drawer label и catalog screen
+наслов, со MK Каталог на производи на двете места. Само UI ресурси, без data промени.
+Постојните UI test selectors се усогласени; release/test APK build помина во IDE.
+Resource checks потврдија исти имиња во drawer/title за двата јазика. Во оваа мала
+label корекција не се извршени повторно phone UI tests и не се update-installed
+двете debug phone APK-и. Runtime state/data архитектура не е менувана.
+Новиот release APK е Shopping-List-App-1.1.1-preview.apk во chat workspace,
+versionCode 3, со ИСТИОТ private release key; v2/v3 signature verify помина.
+SHA256: 8EB6E4194E3963A3DD34E7041508E0CAA0C9B41A58E858B7B3F81FB73BED20A7.
+Ова е новиот кандидат за сопругата/нови тестери наместо претходниот 1.1-preview.
+Owner ќе инсталира утре; тогаш проверете Google email/OAuth audience и вистински
+fresh install/login/list invitation. Приватниот signing folder и претходните
+правила за debug -> release миграција остануваат исти. Не uninstall лични телефони.
+Последен owner-confirmed GitHub push: 7e4afb3. Оваа label корекција е локална.

@@ -5,8 +5,8 @@
     <string name="language">Language</string>
     <string name="shopping_lists">Shopping lists</string>
     <string name="shopping_lists_title">Shopping Lists</string>
-    <string name="item_list">Item list</string>
-    <string name="shopping_items">Shopping Items</string>
+    <string name="item_list">Product catalog</string>
+    <string name="shopping_items">Product catalog</string>
     <string name="shopping_list">Shopping List</string>
     <string name="create_list">Create list</string>
     <string name="list_name">List name</string>
