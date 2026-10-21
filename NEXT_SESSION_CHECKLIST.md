@@ -138,6 +138,7 @@ In-app invitations and the server-enforced Owner/Admin model are implemented.
 and SQL security/lifecycle regressions passed. Two physical accounts passed
 online edits in both directions and offline revocation with queue quarantine.
 See docs/LIST_SHARING.md for the observed proof and remaining pilot limitations.
-Final Note 20 update/temporary-data cleanup is in progress. Clear purchased and
+Final Note 20 update and disposable-data cleanup passed. Original 3 lists / 6
+entries / 5 catalog products are unchanged, with 0 pending. Clear purchased and
 cloud photo/link sharing are still later work; unchecked combined requirements
 containing those features are deliberately left unchecked.

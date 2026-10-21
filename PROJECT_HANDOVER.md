@@ -296,10 +296,20 @@ account останаа точно исти меѓу backup-ите. Привре�
 е избришан; Honor Account покажува Up to date. Нема споделено вистинска корисничка
 листа автоматски. Тест-поканата е отповикана.
 
-Во тек: се чека Note 20 повторно на USB за последниот APK update, owner-side
-проверка дека количината останала 3/false и чистење само на Sharing test / Sharing
-test product. Не тврди дека ова последно чистење е веќе направено. Нема одобрение
-за push. Google branding verification е запишан во чек-листата пред поширока
-дистрибуција; не активирај платен Supabase custom domain. Корисникот сака бесплатен
-пилот; името Shopping List App веќе е поставено, Google сè уште може да го покажува
-Supabase redirect доменот.
+Завршено: Note 20 е повторно backed up и update-installed со истиот последен
+APK како Honor. Owner UI директно потврди qty 3/false по revoked offline +1.
+Sharing test и Sharing test product се отстранети преку UI. Account покажува
+Up to date. Финален приватен backup и SQLite споредба потврдија 3 листи, 6 entries,
+5 catalog производи, 0 pending; сите оригинални колони/редови се непроменети.
+Привремениот Admin catalog производ исто е отстранет од Honor, а тест пристапот
+останува отповикан. Нема автоматски споделена вистинска листа.
+
+Ова ја заменува претходната pending cleanup состојба. 19 phone tests, 3 unit tests,
+2 live sync tests, SQL security/lifecycle и physical two-account online/revoke
+проверките се поминати. Нов код не беше потребен при завршната проверка.
+Нема одобрение за push; последен потврден GitHub checkpoint е 8e14b05, локалниот
+sharing code commit е 7480dd7 и потоа има acceptance документациски commits.
+Google branding verification е во чек-листата пред поширока дистрибуција;
+не активирај платен Supabase custom domain. Photos/links sharing и Clear purchased
+остануваат идни задачи. Прво договори следен чекор со корисникот; не започнувај
+нова функција автоматски по оваа завршна проверка.

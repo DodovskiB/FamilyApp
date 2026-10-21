@@ -86,8 +86,13 @@ Local repository and UI also prevent Admin list deletion.
   no pending operations, no shared entries and exactly one quarantined +1. Three
   personal lists remained; the old account's list/item/catalog tables were unchanged.
   Honor's disposable personal product was removed; Account showed Up to date.
-- Final Note 20 APK update and owner-side cleanup/quantity confirmation are pending.
-  Do not remove or share any real list automatically.
+- Final Note 20 update-install completed. Actual Owner UI still showed 3/unchecked
+  after the revoked offline increment, confirming that it was not applied remotely.
+  Only the disposable test list and its catalog product were removed through the UI.
+  Account showed Up to date. Private SQLite backup comparisons verified exactly
+  3 original lists, 6 original entries and 5 original catalog products, all original
+  columns unchanged, and 0 pending operations. Both phones now have the same APK.
+  No real list was automatically shared; the test membership is revoked.
 
 Cloud photos and product-link attachment sharing are not included in this first
 sharing pass: shared entries expose title/category/qty/check/active snapshots;
