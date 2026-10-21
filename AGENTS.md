@@ -13,6 +13,12 @@ A normal tap on a shopping list opens it; long press exposes Rename/Delete.
 Use this convention for future contextual actions. Preserve direct primary controls
 such as navigation, adding, quantity +/-, and purchased checkboxes.
 
+Owner update 2026-10-22: Clear purchased is an explicit exception to the long-press
+convention. Put it inside the open list, as a separated footer below purchased
+entries, with confirmation. Remove it from list long-press actions. Hide the footer
+when there are no purchased entries. Drawer order: account/email, visually separated,
+then Invitations, Shopping lists, Item list.
+
 ## Personal phone testing
 
 Use isolated test databases and update-install APKs with adb install -r. Do not

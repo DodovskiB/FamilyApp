@@ -9,6 +9,7 @@ import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.familyapp.data.db.AppDatabase
+import com.example.familyapp.sync.SharingState
 import com.example.familyapp.ui.FamilyAppRoot
 import com.example.familyapp.viewmodel.MainMenuViewModel
 import com.example.familyapp.viewmodel.MainMenuViewModelFactory
@@ -38,7 +39,8 @@ class PurchasedUiTest {
                 home to milk
             }
             val vm = ViewModelProvider(owner, MainMenuViewModelFactory(repo))[MainMenuViewModel::class.java]
-            compose.setContent { MaterialTheme { FamilyAppRoot(vm) } }
+            compose.setContent { MaterialTheme { FamilyAppRoot(vm, accountLabel = "Test account",
+                onAccount = {}, sharing = SharingState(ready = true)) } }
             compose.waitUntil(5_000) { vm.lists.value.isNotEmpty() }
             compose.onNodeWithText("New list").assertIsDisplayed()
             compose.onNodeWithText("Fixture home").performClick()
@@ -46,6 +48,9 @@ class PurchasedUiTest {
             val purchasedTop = compose.onNodeWithText("Purchased").fetchSemanticsNode().boundsInRoot.top
             assertTrue(compose.onNodeWithText("Bread").fetchSemanticsNode().boundsInRoot.top < purchasedTop)
             assertTrue(compose.onNodeWithText("Milk").fetchSemanticsNode().boundsInRoot.top > purchasedTop)
+            compose.onNodeWithText("Clear purchased").performScrollTo()
+            assertTrue(compose.onNodeWithText("Clear purchased").fetchSemanticsNode().boundsInRoot.top >
+                compose.onNodeWithText("Milk").fetchSemanticsNode().boundsInRoot.bottom)
             fun chooseMilk() {
                 compose.onNodeWithText("Add product").performClick()
                 compose.onNodeWithText("Search products").performTextInput("Milk")
@@ -62,20 +67,26 @@ class PurchasedUiTest {
             compose.waitUntil(5_000) { !vm.listSaving.value && vm.repeatProductId.value == null }
             compose.onNodeWithContentDescription("Purchased: Milk").assertIsOff().performClick()
             compose.waitUntil(5_000) { !vm.listSaving.value }
-            compose.onNodeWithText("Back to lists").performClick()
-            compose.onNodeWithText("Fixture home").performTouchInput { longClick() }
-            compose.onNodeWithText("Clear purchased").performClick()
+            compose.onNodeWithText("Clear purchased").performScrollTo().performClick()
             compose.onNodeWithText("Cancel").performClick()
             assertEquals(2, runBlocking { repo.getItems(home, 0).size })
-            compose.onNodeWithText("Fixture home").performTouchInput { longClick() }
-            compose.onNodeWithText("Clear purchased").performClick()
-            compose.onNodeWithText("Clear purchased", substring = false).performClick()
+            compose.onNodeWithText("Clear purchased").performScrollTo().performClick()
+            compose.onNode(hasText("Clear purchased") and hasAnyAncestor(isDialog())).performClick()
             compose.waitUntil(5_000) { !vm.listSaving.value }
             assertEquals(listOf("Bread"), runBlocking { repo.getItems(home, 0).map { it.title } })
             assertEquals(2, vm.catalogItems.value.size)
+            compose.onNodeWithText("Clear purchased").assertDoesNotExist()
+            compose.onNodeWithText("Back to lists").performClick()
+            compose.onNodeWithText("Fixture home").performTouchInput { longClick() }
+            compose.onNodeWithText("Clear purchased").assertDoesNotExist()
+            compose.onNodeWithText("Cancel").performClick()
             compose.onNodeWithContentDescription("Open menu").performClick()
             // Only the underlying home button exists; no second drawer destination.
             compose.onAllNodesWithText("New list").assertCountEquals(1)
+            listOf("Test account", "Invitations (0)", "Shopping lists", "Item list").zipWithNext().forEach { (above, below) ->
+                assertTrue(compose.onNodeWithText(above).fetchSemanticsNode().boundsInRoot.top <
+                    compose.onNodeWithText(below).fetchSemanticsNode().boundsInRoot.top)
+            }
         } finally { compose.runOnIdle { owner.clear() }; db.close() }
     }
 }

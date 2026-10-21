@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -64,10 +65,17 @@ fun FamilyAppRoot(
                     Spacer(Modifier.height(24.dp))
                     if (onAccount != null) {
                         NavigationDrawerItem(
-                            label = { Text(accountLabel) }, selected = false,
+                            label = { Text(accountLabel, style = MaterialTheme.typography.titleMedium) }, selected = false,
                             onClick = { scope.launch { drawer.close() }; onAccount() }
                         )
+                        Spacer(Modifier.height(12.dp))
+                        HorizontalDivider()
+                        Spacer(Modifier.height(20.dp))
                     }
+                    if (sharing != null) NavigationDrawerItem(
+                        label = { Text("Invitations (${sharing.invitations.count { it.incoming }})") }, selected = false,
+                        onClick = { sharingList = null; sharingOpen = true; scope.launch { drawer.close() } }
+                    )
                     NavigationDrawerItem(
                         label = { Text("Shopping lists") }, selected = !catalogOpen,
                         onClick = {
@@ -81,10 +89,6 @@ fun FamilyAppRoot(
                             catalogOpen = true
                             scope.launch { drawer.close() }
                         }
-                    )
-                    if (sharing != null) NavigationDrawerItem(
-                        label = { Text("Invitations (${sharing.invitations.count { it.incoming }})") }, selected = false,
-                        onClick = { sharingList = null; sharingOpen = true; scope.launch { drawer.close() } }
                     )
                 }
             }

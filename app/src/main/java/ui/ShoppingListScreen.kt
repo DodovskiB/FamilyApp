@@ -38,7 +38,6 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
     var renameName by rememberSaveable { mutableStateOf("") }
     var deleteId by rememberSaveable { mutableStateOf<Long?>(null) }
     var actionsId by rememberSaveable { mutableStateOf<Long?>(null) }
-    var clearId by rememberSaveable { mutableStateOf<Long?>(null) }
     val selected = lists.firstOrNull { it.id == selectedListId }
 
     if (selected != null) {
@@ -92,9 +91,6 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
                         Text("Share / Manage members")
                     }
                 }
-                TextButton(enabled = !saving, onClick = {
-                    viewModel.clearListError(); actionsId = null; clearId = list.id
-                }) { Text("Clear purchased") }
                 }
             },
             confirmButton = {
@@ -114,18 +110,6 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
                 }
             }
         )
-    }
-    lists.firstOrNull { it.id == clearId }?.let { list ->
-        AlertDialog(onDismissRequest = { if (!saving) clearId = null },
-            title = { Text("Clear purchased?") },
-            text = { Column {
-                Text("Remove purchased entries from ${list.name}? Unpurchased entries, your catalog and other lists are kept.")
-                if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
-            } },
-            confirmButton = { TextButton(enabled = !saving, onClick = {
-                viewModel.clearPurchased(list.id) { clearId = null }
-            }) { Text("Clear purchased") } },
-            dismissButton = { TextButton(enabled = !saving, onClick = { clearId = null }) { Text("Cancel") } })
     }
     if (renameId != null) {
         AlertDialog(
@@ -193,7 +177,8 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
     var title by rememberSaveable(listId) { mutableStateOf("") }
     var category by rememberSaveable(listId) { mutableStateOf("") }
     var removingId by rememberSaveable(listId) { mutableStateOf<Long?>(null) }
-    BackHandler(enabled = !pickerOpen && removingId == null && itemActionsId == null && viewingPhotoId == null && linkingProductId == null) { onBack() }
+    var clearOpen by rememberSaveable(listId) { mutableStateOf(false) }
+    BackHandler(enabled = !clearOpen && !pickerOpen && removingId == null && itemActionsId == null && viewingPhotoId == null && linkingProductId == null) { onBack() }
 
     Column(
         Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp),
@@ -256,9 +241,30 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                 }
             }
             }
+            if (entries.any { it.checked }) item(key = "clear-purchased-footer") {
+                Column(Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    HorizontalDivider()
+                    OutlinedButton(modifier = Modifier.fillMaxWidth(), enabled = !saving, onClick = {
+                        viewModel.clearListError(); clearOpen = true
+                    }) { Text("Clear purchased") }
+                }
+            }
         }
     }
 
+    if (clearOpen) {
+        AlertDialog(onDismissRequest = { if (!saving) clearOpen = false },
+            title = { Text("Clear purchased?") },
+            text = { Column {
+                Text("Remove purchased entries from $name? Unpurchased entries, your catalog and other lists are kept.")
+                if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+            } },
+            confirmButton = { TextButton(enabled = !saving, onClick = {
+                viewModel.clearPurchased(listId) { clearOpen = false }
+            }) { Text("Clear purchased") } },
+            dismissButton = { TextButton(enabled = !saving, onClick = { clearOpen = false }) { Text("Cancel") } })
+    }
     if (repeatProduct != null) {
         val quantity = repeatQuantity.toIntOrNull()?.takeIf { it > 0 }
         AlertDialog(onDismissRequest = { if (!saving) viewModel.cancelRepeatPurchase() },

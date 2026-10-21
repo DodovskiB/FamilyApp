@@ -103,7 +103,7 @@ Sync работи додека app е отворена, не како background
   превод на UI текстовите без менување кориснички имиња на производи/листи.
 
 - [x] Purchased секција со strikethrough и uncheck за враќање.
-- [x] Long-press Clear purchased со потврда: се бришат само купените entries,
+- [x] Clear purchased footer под purchased entries, со потврда: се тргаат само купените entries,
   каталогот останува.
 - [x] Re-add на купен производ: потврда дека повторно е потребен и нова количина.
 - [ ] Посебно планирање за приватно споделување фотографии, права и storage quotas.
@@ -151,3 +151,7 @@ Build/unit tests, 19 избрани изолирани checks и 3 live sync tes
 Оригиналните 3/6/5 записи се непроменети и sync queue е празна.
 Потврден GitHub commit: 41356ca; поновите измени сè уште не се pushed.
 Следно: user acceptance на Purchased, Honor update, design и EN/МК според договор.
+
+Последна UI корекција: drawer = account (издвоен) -> Invitations -> Shopping lists
+-> Item list. Clear purchased е footer внатре во листата, не long-press акција.
+App/test build и 5 UI tests поминаа; Note 20 ажуриран, оригинални податоци непроменети.

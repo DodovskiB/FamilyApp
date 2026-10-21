@@ -340,3 +340,19 @@ Honor го има претходниот sharing APK и чека update кога
 не прави push без ново одобрение. Следно: корисничка проба на Purchased на Note 20,
 update на Honor кога е достапен, па договорените design/language чекори според
 кориснички приоритет. Photos/links sharing останува планирано.
+
+## Drawer и Clear purchased footer — последна корекција, 22 октомври 2026
+
+Owner побара и е направено: account/email прв и издвоен со простор/линија, под него
+Invitations, Shopping lists, Item list последно. Clear purchased НЕ е повеќе со
+long press на home листата. Сега е внатре во отворената листа, како издвоено
+outlined копче со простор и divider под последниот purchased entry. Се прикажува
+само кога има купени entries; потврдата останува. Ова е изричен исклучок на старото
+правило за сите contextual actions преку long press; AGENTS.md е усогласен.
+
+Нема промени на Repository/DAO/sync/permissions. Build app/test APK помина и
+5 релевантни isolated UI tests поминаа. Note 20 е privately backed up и ажуриран;
+реалниот drawer редослед/издвојување е визуелно потврден. Финален SQLite backup
+потврди сите оригинални list/item/catalog полиња непроменети, со 0 pending.
+Последен потврден GitHub commit останува 41356ca. Purchased фазата e9d360b и оваа
+поновa корекција се локални, без одобрение за push. Honor сè уште чека update.

@@ -11,8 +11,10 @@ It supersedes the old menu-only New list placement.
   under **Purchased**, with strikethrough. Unchecking moves an entry back to To buy.
   Existing ID order is retained within each section; quantities and checkboxes work
   in both sections. Empty sections have no heading.
-- Long press a list -> **Clear purchased** -> confirmation. Owner and Admin can
-  use it. Only that list's currently purchased, active shopping entries are removed
+- Inside an open list, **Clear purchased** is a separate footer below the last
+  Purchased entry, with extra spacing, a divider and an outlined button. Owner and
+  Admin can use it; confirmation is retained. Hide the footer when none are purchased.
+  It is no longer a list long-press action (owner revision, 2026-10-22). Only that list's currently purchased, active shopping entries are removed
   from the active view. Unpurchased entries, catalog products, other lists, product
   photos/links and permissions are unchanged. Cancel does not mutate anything.
 - Selecting a catalog product already purchased on this list opens **Buy again?**,
@@ -68,3 +70,19 @@ Honor still has the preceding sharing APK until it is connected for this update.
 No new two-physical-phone purchased acceptance was performed; live two-client sync
 and existing shared permission/storage checks are the verification in this phase.
 No push is authorized for these newer changes.
+
+## Drawer/footer follow-up — 2026-10-22
+
+Drawer destinations now appear as account/email (medium emphasis and a separated
+block), Invitations, Shopping lists, Item list. The existing application heading stays.
+Clear purchased moved from the home list action dialog to the bottom of the open
+list content; its data handling and Owner/Admin permissions are unchanged.
+
+App/test builds and 5 focused isolated UI tests passed: purchased workflow, sharing
+UI (2), home search and shopping list UI. The updated purchased test verifies footer
+position below the purchased row, confirmation/cancel, hiding after clear, absence
+from long-press actions and drawer order. The real Note 20 drawer order/spacing was
+observed and visually reviewed after a backup and update-install. Final backup
+comparison found all original list/item/catalog columns unchanged and 0 pending.
+No new live-service/storage tests were needed for this UI-only placement change.
+Honor still awaits the newer APK; no push for these changes has been authorized.

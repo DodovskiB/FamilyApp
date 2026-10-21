@@ -185,3 +185,12 @@ upper-right home and removed from the drawer, superseding the menu-only rule.
 No permanent home input form. See docs/PURCHASED_WORKFLOW.md for repository/DAO
 semantics and current tests. This is newer than confirmed GitHub commit 41356ca;
 no new push without approval. Note 20 updated; Honor awaits this APK update.
+
+## Drawer and clear-action placement — owner update 2026-10-22
+
+Drawer: account/email visually separated, then Invitations, Shopping lists, Item list.
+Clear purchased is now a separated footer within open-list content below purchased
+entries, with confirmation, hidden when none are purchased. Remove its long-press
+menu entry. This explicitly supersedes the previous clear-action placement and is
+an exception to the general contextual-action convention. Data/sync semantics stay
+as documented in docs/PURCHASED_WORKFLOW.md. Note 20 updated and 5 UI tests passed.
