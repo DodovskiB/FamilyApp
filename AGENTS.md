@@ -36,8 +36,10 @@ but do not display Tap to open / Hold for actions helper text below each name.
 
 ## Creating lists
 
-Keep the home screen free of a New list name input/Add form. New list belongs in
-the upper-left navigation menu alongside Shopping lists and Item list.
+Keep the home screen free of a permanent New list name input/Add form. The owner
+changed this on 2026-10-21: show a + New list button at the upper right of the
+shopping-list home screen, opening the existing creation dialog. Remove New list
+from the hamburger menu. This supersedes the earlier menu-only creation rule.
 
 ## Initial lists
 

@@ -14,7 +14,7 @@ build, storage, server access-control and live two-client tests. Note 20 display
 Up to date with existing local contents retained. See docs/CLOUD_SYNC.md.
 Two-physical-phone same-account online/offline/concurrent acceptance passed.
 Owner/Admin sharing and in-app invitations are implemented; cross-account physical
-acceptance is in progress. See docs/LIST_SHARING.md for current behavior and limits.
+acceptance passed. See docs/LIST_SHARING.md for behavior and limits.
 
 Updated: 2026-10-19. Based on the user's Project Handover & Development Plan.
 
@@ -176,3 +176,12 @@ Galaxy Note 20. Retain any existing non-empty list set rather than adding duplic
 Record one-time completion in private preferences. If the owner later deletes all
 lists, do not recreate them on restart. Products are not copied or synchronized
 between devices by this change. No Room schema change is required.
+
+## Purchased and home creation button — approved 2026-10-21 / verified 2026-10-22
+
+Implemented To buy / Purchased sections, guarded Buy again with a new quantity,
+and confirmed long-press Clear purchased for Owner/Admin. + New list is now at
+upper-right home and removed from the drawer, superseding the menu-only rule.
+No permanent home input form. See docs/PURCHASED_WORKFLOW.md for repository/DAO
+semantics and current tests. This is newer than confirmed GitHub commit 41356ca;
+no new push without approval. Note 20 updated; Honor awaits this APK update.

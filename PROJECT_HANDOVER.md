@@ -45,11 +45,10 @@ Studio, телефоните или најавените browser tabs. Ако н
 
 ## Последна потврдена состојба во Git
 
-Корисникот потврди успешен push на `master` до **8e14b05** на 21 октомври 2026.
-Тој ги содржи duplicate-import поправката, серверскиот merge и потврдениот физички
-online/offline/concurrent тест. Локалниот commit **7480dd7** додава Owner/Admin
-sharing и in-app покани; негов push не е одобрен или потврден. Види docs/LIST_SHARING.md
-за имплементацијата, тестовите и тековниот cross-account acceptance gate.
+Корисникот потврди успешен push на `master` до **41356ca** (Owner/Admin sharing,
+in-app покани и physical acceptance со зачувани оригинални податоци).
+Новата Purchased/+ New list работа е понова локална фаза, без одобрен push.
+Види docs/PURCHASED_WORKFLOW.md за тековната имплементација и верификација.
 
 | Commit / tag | Содржина |
 |---|---|
@@ -313,3 +312,31 @@ Google branding verification е во чек-листата пред поширо
 не активирај платен Supabase custom domain. Photos/links sharing и Clear purchased
 остануваат идни задачи. Прво договори следен чекор со корисникот; не започнувај
 нова функција автоматски по оваа завршна проверка.
+
+## Purchased и + New list — завршена локална фаза, 22 октомври 2026
+
+Owner одобри: To buy / Purchased секции со купените долу/прецртани; uncheck ги
+враќа горе; long-press Clear purchased со потврда за Owner и Admin; повторно
+додавање купен catalog производ бара Buy again потврда и нова количина.
+Потврден нов циклус ги крие старите purchased entry и создава нов unchecked entry
+со избраната количина, без менување каталог или старата qty преку неподдржан
+absolute sync patch. Clear е scoped Room transaction со active=false patches.
+Нема Room миграција/серверска миграција/нова библиотека/нов сервис.
+
+Owner го промени претходното правило за New list: отстранет од hamburger, ставен
+како + New list горе десно на home, што го отвора постојниот Create дијалог.
+Нема постојан name input на home. AGENTS.md е усогласен со новото барање.
+
+Build app/test APK и 3 unit tests поминаа. 19 изолирани избрани phone checks
+поминаа (18 првично и поправениот dialog-scoped UI selector потоа). Сите 3 live
+sync tests поминаа, вклучувајќи нов test за repeat/clear/catalog retention меѓу
+два изолирани клиенти. Нема тврдење за нов physical 2-phone purchased тест.
+Note 20 е backed up/update-installed; + New list/Create/Cancel и отсуство од
+менито се видени на вистинскиот UI. Account покажува Up to date. Финален backup
+потврди сите оригинални полиња непроменети: 3 lists, 6 entries, 5 catalog, 0 pending.
+Honor го има претходниот sharing APK и чека update кога ќе се поврзе.
+
+Последен потврден GitHub checkpoint е 41356ca. Новите измени се локални;
+не прави push без ново одобрение. Следно: корисничка проба на Purchased на Note 20,
+update на Honor кога е достапен, па договорените design/language чекори според
+кориснички приоритет. Photos/links sharing останува планирано.

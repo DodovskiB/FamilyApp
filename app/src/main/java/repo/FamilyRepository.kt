@@ -23,7 +23,9 @@ interface FamilyRepository {
 
     suspend fun setCatalogLink(id: Long, url: String)
 
-    suspend fun addCatalogItemToList(listId: Long, catalogItemId: Long): Long
+    suspend fun addCatalogItemToList(listId: Long, catalogItemId: Long, purchasedQuantity: Int? = null): Long
+
+    suspend fun clearPurchased(listId: Long)
 
     suspend fun createProductForList(listId: Long, title: String, category: String): Long
 
@@ -85,3 +87,5 @@ interface FamilyRepository {
         id: Long
     )
 }
+
+class PurchasedProductNeedsConfirmation(val productId: Long) : Exception("Product is already purchased")

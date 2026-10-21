@@ -72,12 +72,22 @@ class RoomFamilyRepository(private val db: AppDatabase, private val photos: Prod
         withContext(Dispatchers.IO) { photos?.delete(oldPhoto) }
     }
 
-    override suspend fun addCatalogItemToList(listId: Long, catalogItemId: Long): Long =
+    override suspend fun addCatalogItemToList(listId: Long, catalogItemId: Long, purchasedQuantity: Int?): Long =
         db.withTransaction {
             requireNotNull(listDao.getById(listId)) { "List no longer exists" }
             val product = requireNotNull(catalogItemDao.getById(catalogItemId)) { "Product no longer exists" }
             val existing = itemDao.findActiveCatalogItem(listId, catalogItemId)
-            if (existing != null) {
+            if (existing?.checked == true && purchasedQuantity == null) throw PurchasedProductNeedsConfirmation(catalogItemId)
+            if (purchasedQuantity != null) {
+                require(purchasedQuantity > 0)
+                // A new purchase cycle has a new entry identity. It cannot inherit a stale
+                // quantity delta or checked edit queued against the previous purchased entry.
+                require(existing?.checked == true) { "Product changed; select it again" }
+                itemDao.setActive(existing.id, false)
+                itemDao.insert(ItemEntity(listId = listId, title = product.title, kind = 0,
+                    category = product.category, qty = purchasedQuantity, checked = false,
+                    isActive = true, catalogItemId = product.id))
+            } else if (existing != null) {
                 itemDao.changeQty(existing.id, 1)
                 existing.id
             } else {
@@ -90,6 +100,11 @@ class RoomFamilyRepository(private val db: AppDatabase, private val photos: Prod
                 )
             }
         }
+
+    override suspend fun clearPurchased(listId: Long) = db.withTransaction {
+        requireNotNull(listDao.getById(listId)) { "List no longer exists" }
+        itemDao.clearPurchased(listId)
+    }
 
     override suspend fun createProductForList(listId: Long, title: String, category: String): Long =
         db.withTransaction {

@@ -43,4 +43,7 @@ interface ItemDao {
 
     @Query("UPDATE items SET isActive = :isActive WHERE id = :id")
     suspend fun setActive(id: Long, isActive: Boolean)
+
+    @Query("UPDATE items SET isActive = 0 WHERE listId = :listId AND kind = 0 AND isActive = 1 AND checked = 1")
+    suspend fun clearPurchased(listId: Long)
 }

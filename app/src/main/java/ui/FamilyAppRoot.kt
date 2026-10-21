@@ -82,15 +82,6 @@ fun FamilyAppRoot(
                             scope.launch { drawer.close() }
                         }
                     )
-                    NavigationDrawerItem(
-                        label = { Text("New list") }, selected = false,
-                        onClick = {
-                            viewModel.clearListError()
-                            newListName = ""
-                            newListOpen = true
-                            scope.launch { drawer.close() }
-                        }
-                    )
                     if (sharing != null) NavigationDrawerItem(
                         label = { Text("Invitations (${sharing.invitations.count { it.incoming }})") }, selected = false,
                         onClick = { sharingList = null; sharingOpen = true; scope.launch { drawer.close() } }
@@ -104,7 +95,8 @@ fun FamilyAppRoot(
                 ShoppingItemsScreen(viewModel, onBack = { catalogOpen = false })
             } else {
                 ShoppingListScreen(viewModel, onOpenMenu = { scope.launch { drawer.open() } }, sharing = sharing,
-                    onShare = { sharingList = it; sharingOpen = true })
+                    onShare = { sharingList = it; sharingOpen = true },
+                    onNewList = { viewModel.clearListError(); newListName = ""; newListOpen = true })
             }
         }
     }

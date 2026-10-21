@@ -102,10 +102,10 @@ Sync работи додека app е отворена, не како background
 - [ ] Settings -> Language: English (default) / Македонски (кирилица), зачуван избор;
   превод на UI текстовите без менување кориснички имиња на производи/листи.
 
-- [ ] Purchased секција со strikethrough и uncheck за враќање.
-- [ ] Long-press Clear purchased со потврда: се бришат само купените entries,
+- [x] Purchased секција со strikethrough и uncheck за враќање.
+- [x] Long-press Clear purchased со потврда: се бришат само купените entries,
   каталогот останува.
-- [ ] Re-add на купен производ: потврда дека повторно е потребен и нова количина.
+- [x] Re-add на купен производ: потврда дека повторно е потребен и нова количина.
 - [ ] Посебно планирање за приватно споделување фотографии, права и storage quotas.
 - [ ] Подготовка на APK за мал круг тестери со соодветно потпишување и
   зачуван клуч за идни updates. Не објавувај инсталер пред договор за дистрибуција.
@@ -142,3 +142,12 @@ Final Note 20 update and disposable-data cleanup passed. Original 3 lists / 6
 entries / 5 catalog products are unchanged, with 0 pending. Clear purchased and
 cloud photo/link sharing are still later work; unchecked combined requirements
 containing those features are deliberately left unchecked.
+
+## Последна локална фаза — Purchased / + New list
+
+Purchased/re-add/clear и + New list горе десно се имплементирани и верифицирани.
+Види docs/PURCHASED_WORKFLOW.md. Note 20 ажуриран; Honor чека update.
+Build/unit tests, 19 избрани изолирани checks и 3 live sync tests поминаа.
+Оригиналните 3/6/5 записи се непроменети и sync queue е празна.
+Потврден GitHub commit: 41356ca; поновите измени сè уште не се pushed.
+Следно: user acceptance на Purchased, Honor update, design и EN/МК според договор.

@@ -45,7 +45,6 @@ class ShoppingListUiTest {
     @Test
     fun userCanCreateRenameShopAndCancelRemovals() {
         compose.onNodeWithText("New list name").assertDoesNotExist()
-        compose.onNodeWithContentDescription("Open menu").performClick()
         compose.onNodeWithText("New list", substring = false).performClick()
         compose.onNodeWithText("List name", substring = false).performTextInput("Home")
         compose.onNodeWithText("Create", substring = false).performClick()

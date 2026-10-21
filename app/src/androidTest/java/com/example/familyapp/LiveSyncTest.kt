@@ -25,6 +25,52 @@ import repo.RoomFamilyRepository
  * Never opens or modifies the user's real local Room database. */
 @RunWith(AndroidJUnit4::class)
 class LiveSyncTest {
+    @Test fun purchasedCyclesAndClearConvergeWithoutDeletingCatalog() = runBlocking {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("syncLive") == "true")
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val accounts = AccountRepository.getInstance(context)
+        val session = withTimeout(30_000) { requireNotNull(accounts.status).filterIsInstance<SessionStatus.Authenticated>().first() }
+        val remote = SupabaseSyncTransport(accounts, requireNotNull(session.session.user).id)
+        val names = List(2) { "live-purchased-${UUID.randomUUID()}.db" }
+        val dbs = names.map { Room.databaseBuilder(context, AppDatabase::class.java, it).build() }
+        val sync = dbs.map { SyncController(it, remote) }
+        val repo = dbs.map { RoomFamilyRepository(it) }
+        val title = "Disposable purchased ${UUID.randomUUID()}"
+        val cleanup = mutableListOf<Pair<String, String>>()
+        try {
+            sync.forEach { it.synchronize() }
+            val list = repo[0].addList(title, 1002)
+            val product = repo[0].addCatalogItem(title, "Other")
+            sync[0].store.pending().forEach {
+                cleanup.add(it.json.getValue("entity").jsonPrimitive.content to it.json.getValue("id").jsonPrimitive.content)
+            }
+            val old = repo[0].addCatalogItemToList(list, product)
+            repo[0].setQty(old, 5); repo[0].toggleChecked(old, true)
+            sync[0].synchronize(); sync[1].synchronize()
+            val secondList = repo[1].getLists().single { it.name == title }.id
+            val secondProduct = withTimeout(5_000) { repo[1].observeCatalogItems().first() }.single { it.title == title }.id
+            assertTrue(repo[1].getItems(secondList, 0).single().checked)
+            repo[1].addCatalogItemToList(secondList, secondProduct, 2)
+            sync[1].synchronize(); sync[0].synchronize()
+            val next = repo[0].getItems(list, 0).single()
+            assertNotEquals(old, next.id); assertEquals(2, next.qty); assertFalse(next.checked)
+            repo[1].toggleChecked(repo[1].getItems(secondList, 0).single().id, true)
+            repo[1].clearPurchased(secondList)
+            sync[1].synchronize(); sync[0].synchronize()
+            assertTrue(repo[0].getItems(list, 0).isEmpty())
+            assertTrue(repo[1].getItems(secondList, 0).isEmpty())
+            assertTrue(withTimeout(5_000) { repo[0].observeCatalogItems().first() }.any { it.id == product })
+            assertEquals(0, sync[0].store.pendingCount()); assertEquals(0, sync[1].store.pendingCount())
+        } finally {
+            try {
+                remote.apply(buildJsonArray { cleanup.forEach { (entity, id) -> add(buildJsonObject {
+                    put("operation_id", UUID.randomUUID().toString()); put("entity", entity); put("id", id)
+                    put("action", "delete"); put("body", buildJsonObject {})
+                }) } })
+            } finally { dbs.forEach { it.close() }; names.forEach { context.deleteDatabase(it) } }
+        }
+    }
+
     @Test fun mergedListsKeepEveryEntryAndRedirectQueuedOldDeviceWrites() = runBlocking {
         assumeTrue(InstrumentationRegistry.getArguments().getString("syncLive") == "true")
         val context = InstrumentationRegistry.getInstrumentation().targetContext

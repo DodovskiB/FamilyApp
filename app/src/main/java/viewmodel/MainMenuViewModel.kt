@@ -95,6 +95,9 @@ class MainMenuViewModel(
     val listSaving = _listSaving.asStateFlow()
     private val _listError = MutableStateFlow<String?>(null)
     val listError = _listError.asStateFlow()
+    private val _repeatProductId = MutableStateFlow<Long?>(null)
+    val repeatProductId = _repeatProductId.asStateFlow()
+    fun cancelRepeatPurchase() { _repeatProductId.value = null; clearListError() }
 
     fun clearListError() { _listError.value = null }
 
@@ -108,6 +111,8 @@ class MainMenuViewModel(
                 onSuccess()
             } catch (cancelled: CancellationException) {
                 throw cancelled
+            } catch (repeat: repo.PurchasedProductNeedsConfirmation) {
+                _repeatProductId.value = repeat.productId
             } catch (_: Exception) {
                 _listError.value = "Could not save the change. Please try again."
             } finally {
@@ -118,9 +123,12 @@ class MainMenuViewModel(
 
     fun listItems(listId: Long) = repository.observeItems(listId, kind = 0)
 
-    fun addProductToList(listId: Long, productId: Long, onSuccess: () -> Unit) = changeList(onSuccess) {
-        repository.addCatalogItemToList(listId, productId)
+    fun addProductToList(listId: Long, productId: Long, purchasedQuantity: Int? = null, onSuccess: () -> Unit) = changeList(onSuccess) {
+        repository.addCatalogItemToList(listId, productId, purchasedQuantity)
+        _repeatProductId.value = null
     }
+
+    fun clearPurchased(listId: Long, onSuccess: () -> Unit) = changeList(onSuccess) { repository.clearPurchased(listId) }
 
     fun createProductForList(listId: Long, title: String, category: String, onSuccess: () -> Unit) = changeList(onSuccess) {
         repository.createProductForList(listId, title, category)

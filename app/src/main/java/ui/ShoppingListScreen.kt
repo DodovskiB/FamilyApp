@@ -11,6 +11,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -26,7 +29,7 @@ import com.example.familyapp.sync.SharingState
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
-                       sharing: SharingState? = null, onShare: (Long) -> Unit = {}) {
+                       sharing: SharingState? = null, onShare: (Long) -> Unit = {}, onNewList: () -> Unit = {}) {
     val lists by viewModel.lists.collectAsState()
     val saving by viewModel.listSaving.collectAsState()
     val error by viewModel.listError.collectAsState()
@@ -35,6 +38,7 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
     var renameName by rememberSaveable { mutableStateOf("") }
     var deleteId by rememberSaveable { mutableStateOf<Long?>(null) }
     var actionsId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var clearId by rememberSaveable { mutableStateOf<Long?>(null) }
     val selected = lists.firstOrNull { it.id == selectedListId }
 
     if (selected != null) {
@@ -45,10 +49,17 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
         Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        IconButton(onClick = onOpenMenu) { Icon(Icons.Default.Menu, contentDescription = "Open menu") }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            IconButton(onClick = onOpenMenu) { Icon(Icons.Default.Menu, contentDescription = "Open menu") }
+            Button(enabled = !saving, onClick = onNewList) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(Modifier.width(6.dp))
+                Text("New list")
+            }
+        }
         Text("Shopping Lists", style = MaterialTheme.typography.headlineMedium)
         if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
-        if (lists.isEmpty()) Text("No lists yet. Use the menu to create your first list.")
+        if (lists.isEmpty()) Text("No lists yet. Tap New list to create your first list.")
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(lists, key = { it.id }) { list ->
                 Card(Modifier.fillMaxWidth()) {
@@ -75,10 +86,15 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
             onDismissRequest = { actionsId = null },
             title = { Text(list.name) },
             text = {
+                Column {
                 if (sharing != null && sharing.access[list.id]?.role != "admin") {
                     TextButton(enabled = sharing.ready && !sharing.busy, onClick = { actionsId = null; onShare(list.id) }) {
                         Text("Share / Manage members")
                     }
+                }
+                TextButton(enabled = !saving, onClick = {
+                    viewModel.clearListError(); actionsId = null; clearId = list.id
+                }) { Text("Clear purchased") }
                 }
             },
             confirmButton = {
@@ -98,6 +114,18 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
                 }
             }
         )
+    }
+    lists.firstOrNull { it.id == clearId }?.let { list ->
+        AlertDialog(onDismissRequest = { if (!saving) clearId = null },
+            title = { Text("Clear purchased?") },
+            text = { Column {
+                Text("Remove purchased entries from ${list.name}? Unpurchased entries, your catalog and other lists are kept.")
+                if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+            } },
+            confirmButton = { TextButton(enabled = !saving, onClick = {
+                viewModel.clearPurchased(list.id) { clearId = null }
+            }) { Text("Clear purchased") } },
+            dismissButton = { TextButton(enabled = !saving, onClick = { clearId = null }) { Text("Cancel") } })
     }
     if (renameId != null) {
         AlertDialog(
@@ -151,6 +179,8 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
     val catalog by viewModel.catalogItems.collectAsState()
     val saving by viewModel.listSaving.collectAsState()
     val error by viewModel.listError.collectAsState()
+    val repeatProduct by viewModel.repeatProductId.collectAsState()
+    var repeatQuantity by rememberSaveable(repeatProduct) { mutableStateOf("1") }
     val photoSaving by viewModel.catalogSaving.collectAsState()
     val photoError by viewModel.catalogError.collectAsState()
     val photoActions = rememberProductPhotoActions(viewModel)
@@ -184,7 +214,12 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
         if (photoError != null) Text(photoError!!, color = MaterialTheme.colorScheme.error)
         if (entries.isEmpty()) Text("This list is empty. Add a product from your catalog.")
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(entries, key = { it.id }) { item ->
+            listOf(false, true).forEach { purchased ->
+                val section = entries.filter { it.checked == purchased }
+                if (section.isNotEmpty()) item(key = if (purchased) "purchased-heading" else "outstanding-heading") {
+                    Text(if (purchased) "Purchased" else "To buy", style = MaterialTheme.typography.titleLarge)
+                }
+                items(section, key = { it.id }) { item ->
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.fillMaxWidth().combinedClickable(
                         enabled = !saving && !photoSaving,
@@ -220,10 +255,27 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                     }
                 }
             }
+            }
         }
     }
 
-    if (pickerOpen && !creating) {
+    if (repeatProduct != null) {
+        val quantity = repeatQuantity.toIntOrNull()?.takeIf { it > 0 }
+        AlertDialog(onDismissRequest = { if (!saving) viewModel.cancelRepeatPurchase() },
+            title = { Text("Buy again?") },
+            text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("${catalog.firstOrNull { it.id == repeatProduct }?.title ?: "This product"} is already purchased. Add it as unpurchased with a new quantity?")
+                OutlinedTextField(repeatQuantity, { repeatQuantity = it.filter(Char::isDigit).take(10) },
+                    label = { Text("New quantity") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true, enabled = !saving, isError = quantity == null)
+                if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+            } },
+            confirmButton = { TextButton(enabled = !saving && quantity != null, onClick = {
+                viewModel.addProductToList(listId, repeatProduct!!, quantity) { pickerOpen = false }
+            }) { Text("Buy again") } },
+            dismissButton = { TextButton(enabled = !saving, onClick = { viewModel.cancelRepeatPurchase() }) { Text("Cancel") } })
+    }
+    if (pickerOpen && !creating && repeatProduct == null) {
         AlertDialog(
             onDismissRequest = { if (!saving) pickerOpen = false },
             title = { Text("Choose a product") },
