@@ -52,3 +52,11 @@ from the hamburger menu. This supersedes the earlier menu-only creation rule.
 The owner approved Home, Weekend House and Vacation as default lists for empty
 installations. Initialize once; preserve existing lists and do not recreate defaults
 if the owner subsequently deletes them. This supersedes the earlier undecided default-list policy.
+
+## Languages — owner decision 2026-10-22
+
+Keep direct EN / MK choices at the drawer bottom, English as explicit default.
+Localize app UI in Android resources; keep user-entered and stored names intact.
+Use AppCompat per-app locales; see docs/LANGUAGES.md. New UI/status copy needs both
+English and Macedonian Cyrillic. Always supply `git push origin master` when a
+version is saved; the owner performs the push unless explicitly delegated.

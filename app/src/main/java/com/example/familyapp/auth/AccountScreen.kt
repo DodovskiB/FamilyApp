@@ -1,5 +1,6 @@
 package com.example.familyapp.auth
 
+import com.example.familyapp.ui.localizedMessage
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -29,39 +30,39 @@ fun AccountScreen(state: AccountState, onSignIn: () -> Unit, onSignOut: () -> Un
                   onBack: (() -> Unit)? = null) {
     Surface(Modifier.fillMaxSize()) {
         Column(Modifier.safeDrawingPadding().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("${stringResource(R.string.app_name)} account", style = MaterialTheme.typography.headlineMedium)
+            Text(stringResource(R.string.account_title, stringResource(R.string.app_name)), style = MaterialTheme.typography.headlineMedium)
             if (state.loading) {
                 CircularProgressIndicator()
             } else if (state.userId != null) {
-                Text(state.name ?: "Signed in", style = MaterialTheme.typography.titleLarge)
+                Text(state.name ?: stringResource(R.string.signed_in), style = MaterialTheme.typography.titleLarge)
                 state.email?.let { Text(it) }
-                Text("Signed in with Google. Your shopping lists are connected to your account.")
+                Text(stringResource(R.string.signed_in_info))
                 syncStatus?.let {
-                    Text(it.message)
-                    if (it.pending > 0) Text("${it.pending} changes waiting to sync")
+                    Text(localizedMessage(it.message))
+                    if (it.pending > 0) Text(stringResource(R.string.pending_changes, it.pending))
                     if (it.needsImportChoice && onImportChoice != null) {
-                        Text("Combine matching lists to keep every product entry, quantity and purchased status. Products are not deduplicated. Or keep this phone's lists separate.")
-                        Button(onClick = { onImportChoice(true) }) { Text("Combine matching lists") }
-                        TextButton(onClick = { onImportChoice(false) }) { Text("Keep lists separate") }
+                        Text(stringResource(R.string.merge_info))
+                        Button(onClick = { onImportChoice(true) }) { Text(stringResource(R.string.combine_lists)) }
+                        TextButton(onClick = { onImportChoice(false) }) { Text(stringResource(R.string.keep_separate)) }
                     }
                 }
-                Text("Lists sync while the app is open. Product photos are currently saved on this phone.")
-                Button(onClick = onSignOut, enabled = !state.busy) { Text("Sign out") }
+                Text(stringResource(R.string.sync_info))
+                Button(onClick = onSignOut, enabled = !state.busy) { Text(stringResource(R.string.sign_out)) }
             } else {
-                Text("Sign in with your Google account to connect ${stringResource(R.string.app_name)} to your profile.")
+                Text(stringResource(R.string.sign_in_info, stringResource(R.string.app_name)))
                 if (!state.requiresSignIn) {
-                    Text("The existing lists on this phone will be associated with the first account you sign in with.")
+                    Text(stringResource(R.string.first_sign_in))
                 }
                 if (state.configured) {
-                    Button(onClick = onSignIn, enabled = !state.busy) { Text("Continue with Google") }
+                    Button(onClick = onSignIn, enabled = !state.busy) { Text(stringResource(R.string.continue_google)) }
                 } else {
-                    Text("Account setup is in progress. You can keep using your local shopping lists.")
+                    Text(stringResource(R.string.account_setup))
                 }
             }
             if (state.busy) CircularProgressIndicator()
-            state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            state.error?.let { Text(localizedMessage(it), color = MaterialTheme.colorScheme.error) }
             Spacer(Modifier.height(8.dp))
-            onBack?.let { TextButton(onClick = it) { Text("Back to lists") } }
+            onBack?.let { TextButton(onClick = it) { Text(stringResource(R.string.back_lists)) } }
         }
     }
 }

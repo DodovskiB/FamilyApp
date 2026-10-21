@@ -1,5 +1,7 @@
 package com.example.familyapp.ui
 
+import androidx.compose.ui.res.stringResource
+import com.example.familyapp.R
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -90,7 +92,7 @@ fun ProductPhoto(fileName: String?, title: String, modifier: Modifier = Modifier
         }
     }
     bitmap?.let {
-        Image(it, contentDescription = "Photo: $title",
+        Image(it, contentDescription = stringResource(R.string.photo_description, title),
             modifier = modifier.size(if (large) 280.dp else 56.dp).clip(RoundedCornerShape(8.dp)),
             contentScale = if (large) ContentScale.Fit else ContentScale.Crop)
     }
@@ -101,17 +103,17 @@ fun PhotoMenuOptions(product: CatalogItemEntity, actions: ProductPhotoActions, e
                      onClose: () -> Unit, onView: () -> Unit, onRemove: () -> Unit) {
     TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
         onClose(); actions.camera(product.id)
-    }) { Text("Take photo") }
+    }) { Text(stringResource(R.string.take_photo)) }
     TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
         onClose(); actions.gallery(product.id)
-    }) { Text("Choose from gallery") }
+    }) { Text(stringResource(R.string.choose_gallery)) }
     if (product.photoFileName != null) {
         TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
             onClose(); onView()
-        }) { Text("View photo") }
+        }) { Text(stringResource(R.string.view_photo)) }
         TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
             onClose(); onRemove()
-        }) { Text("Remove photo") }
+        }) { Text(stringResource(R.string.remove_photo)) }
     }
 }
 
@@ -119,5 +121,5 @@ fun PhotoMenuOptions(product: CatalogItemEntity, actions: ProductPhotoActions, e
 fun ProductPhotoDialog(product: CatalogItemEntity, onDismiss: () -> Unit) {
     AlertDialog(onDismissRequest = onDismiss, title = { Text(product.title) },
         text = { ProductPhoto(product.photoFileName, product.title, large = true) },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } })
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } })
 }

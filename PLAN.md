@@ -194,3 +194,11 @@ entries, with confirmation, hidden when none are purchased. Remove its long-pres
 menu entry. This explicitly supersedes the previous clear-action placement and is
 an exception to the general contextual-action convention. Data/sync semantics stay
 as documented in docs/PURCHASED_WORKFLOW.md. Note 20 updated and 5 UI tests passed.
+
+## EN / MK — owner approved 2026-10-22
+
+Simple direct choices at bottom of hamburger menu, English default, Macedonian
+Cyrillic optional and persistent. Translate app UI/status/accessibility, preserve
+stored names. See docs/LANGUAGES.md. After Note 20 verification, update Honor with
+all purchased, drawer and language changes and verify language persistence there.
+Last owner-confirmed GitHub checkpoint is 60a07e0; newer work is local until pushed.

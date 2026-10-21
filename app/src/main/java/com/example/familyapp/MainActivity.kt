@@ -1,10 +1,14 @@
 package com.example.familyapp
 
+import androidx.compose.ui.res.stringResource
+import com.example.familyapp.R
 import android.os.Bundle
 import android.content.Intent
 import androidx.activity.viewModels
 import androidx.activity.compose.BackHandler
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -36,7 +40,7 @@ import com.example.familyapp.viewmodel.MainMenuViewModel
 import com.example.familyapp.viewmodel.MainMenuViewModelFactory
 import repo.RoomFamilyRepository
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private val accountViewModel: AccountViewModel by viewModels()
 
     override fun onNewIntent(intent: Intent) {
@@ -47,6 +51,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Explicit English default, independent of the phone's language. AppCompat
+        // restores a previous explicit choice before this point, also on Android 12.
+        if (AppCompatDelegate.getApplicationLocales().isEmpty) {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en"))
+        }
         if (savedInstanceState == null) accountViewModel.handleCallback(intent.data)
         setContent {
             FamilyAppTheme {
@@ -91,7 +100,7 @@ class MainActivity : ComponentActivity() {
                             factory = MainMenuViewModelFactory(repository = repo)
                         )
                         FamilyAppRoot(mainMenuViewModel,
-                            accountLabel = account.email ?: "Account",
+                            accountLabel = account.email ?: stringResource(R.string.account),
                             onAccount = { accountOpen = true }, sharing = sharing,
                             onSharingAction = { action, list, email, invitation, member ->
                                 scope.launch { sync?.sharingAction(action, list, email, invitation, member) }

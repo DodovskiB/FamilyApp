@@ -1,5 +1,7 @@
 package com.example.familyapp.ui
 
+import androidx.compose.ui.res.stringResource
+import com.example.familyapp.R
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -56,19 +58,19 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(onClick = onBack) { Text("Back") }
+            TextButton(onClick = onBack) { Text(stringResource(R.string.back)) }
             Button(onClick = {
                 editingId = null
                 title = ""
                 category = ""
                 viewModel.clearCatalogError()
                 editorOpen = true
-            }, enabled = !saving) { Text("Add product") }
+            }, enabled = !saving) { Text(stringResource(R.string.add_product)) }
         }
-        Text("Shopping Items", style = MaterialTheme.typography.headlineMedium)
-        Text("Hold a product for photos, editing or deletion.")
-        if (error != null && !editorOpen && deletingId == null) Text(error!!, color = MaterialTheme.colorScheme.error)
-        if (products.isEmpty()) Text("No products yet. Add your first product.")
+        Text(stringResource(R.string.shopping_items), style = MaterialTheme.typography.headlineMedium)
+        Text(stringResource(R.string.hold_catalog_product))
+        if (error != null && !editorOpen && deletingId == null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
+        if (products.isEmpty()) Text(stringResource(R.string.no_products))
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -85,7 +87,7 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
                                 viewModel.clearCatalogError()
                                 editorOpen = true
                             },
-                            onLongClickLabel = "Product actions",
+                            onLongClickLabel = stringResource(R.string.product_actions),
                             onLongClick = { actionsId = product.id }
                         ).padding(16.dp)
                     ) {
@@ -101,21 +103,21 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
     if (editorOpen) {
         AlertDialog(
             onDismissRequest = { if (!saving) editorOpen = false },
-            title = { Text(if (editingId == null) "Add product" else "Edit product") },
+            title = { Text(if (editingId == null) stringResource(R.string.add_product) else stringResource(R.string.edit_product)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = title, onValueChange = { title = it },
-                        label = { Text("Product name") }, singleLine = true,
+                        label = { Text(stringResource(R.string.product_name)) }, singleLine = true,
                         enabled = !saving, modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = category, onValueChange = { category = it },
-                        label = { Text("Category") }, singleLine = true,
-                        supportingText = { Text("Leave blank to use Other") },
+                        label = { Text(stringResource(R.string.category)) }, singleLine = true,
+                        supportingText = { Text(stringResource(R.string.category_hint)) },
                         enabled = !saving, modifier = Modifier.fillMaxWidth()
                     )
-                    if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+                    if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
                 }
             },
             confirmButton = {
@@ -124,10 +126,10 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
                     if (editingId == null || existing != null) {
                         viewModel.saveCatalogItem(existing, title, category) { editorOpen = false }
                     }
-                }) { Text(if (saving) "Saving..." else "Save") }
+                }) { Text(if (saving) stringResource(R.string.saving) else stringResource(R.string.save)) }
             },
             dismissButton = {
-                TextButton(enabled = !saving, onClick = { editorOpen = false }) { Text("Cancel") }
+                TextButton(enabled = !saving, onClick = { editorOpen = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -148,7 +150,7 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
                         category = product.category
                         viewModel.clearCatalogError()
                         editorOpen = true
-                    }) { Text("Edit") }
+                    }) { Text(stringResource(R.string.edit)) }
                     PhotoMenuOptions(product, photoActions, !saving, onClose = { actionsId = null },
                         onView = { viewingPhotoId = product.id },
                         onRemove = { viewModel.removeCatalogPhoto(product.id) })
@@ -156,11 +158,11 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
                         actionsId = null
                         viewModel.clearCatalogError()
                         deletingId = product.id
-                    }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                    }) { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }
                 }
             },
             confirmButton = {
-                TextButton(onClick = { actionsId = null }) { Text("Cancel") }
+                TextButton(onClick = { actionsId = null }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -168,20 +170,20 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
     products.firstOrNull { it.id == deletingId }?.let { product ->
         AlertDialog(
             onDismissRequest = { if (!saving) deletingId = null },
-            title = { Text("Delete product?") },
+            title = { Text(stringResource(R.string.delete_product)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Remove ${product.title} from the catalog? Existing shopping list items are kept.")
-                    if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete_product_body, product.title))
+                    if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
                 }
             },
             confirmButton = {
                 TextButton(enabled = !saving, onClick = {
                     viewModel.deleteCatalogItem(product.id) { deletingId = null }
-                }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                }) { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(enabled = !saving, onClick = { deletingId = null }) { Text("Cancel") }
+                TextButton(enabled = !saving, onClick = { deletingId = null }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }

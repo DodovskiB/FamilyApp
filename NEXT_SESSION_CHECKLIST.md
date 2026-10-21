@@ -155,3 +155,15 @@ Build/unit tests, 19 избрани изолирани checks и 3 live sync tes
 Последна UI корекција: drawer = account (издвоен) -> Invitations -> Shopping lists
 -> Item list. Clear purchased е footer внатре во листата, не long-press акција.
 App/test build и 5 UI tests поминаа; Note 20 ажуриран, оригинални податоци непроменети.
+
+## Најново — 22 октомври, EN / MK завршено на Note 20
+
+- [x] Последен потврден GitHub push: 60a07e0.
+- [x] Директни EN / MK најдолу во hamburger menu, English default, зачуван избор.
+- [x] MK кирилични UI/dialog/account/sharing/sync ресурси; имињата се задржани.
+- [x] Build, 3 unit tests, lint и 8 selected isolated UI tests поминаа.
+- [x] Note 20 update и MK cold-restart проверка; вратен EN; оригинални податоци зачувани.
+- [ ] Owner push на новата локална верзија: git push origin master.
+- [ ] Поврзи Honor, приватен backup, update-install без uninstall.
+- [ ] Провери јазик по restart на Honor и двата account-а/shared листи.
+- [ ] Потоа договор за следен дизајн/продуктен чекор; photos/links sharing останува идно.

@@ -64,6 +64,8 @@ android {
 }
 
 dependencies {
+    // Official per-app locale persistence/recreation, including Android 12 and lower.
+    implementation("androidx.appcompat:appcompat:1.7.1")
     implementation(platform("io.github.jan-tennert.supabase:bom:3.2.6"))
     implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.ktor:ktor-client-android:3.3.1")

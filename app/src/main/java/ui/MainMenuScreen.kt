@@ -27,11 +27,11 @@ fun MainMenuScreen(
         Text(stringResource(R.string.app_name))
 
         Button(onClick = onShoppingList) {
-            Text("Shopping List")
+            Text(stringResource(R.string.shopping_list))
         }
 
         Button(onClick = onShoppingItems) {
-            Text("Shopping Items")
+            Text(stringResource(R.string.shopping_items))
         }
     }
 }

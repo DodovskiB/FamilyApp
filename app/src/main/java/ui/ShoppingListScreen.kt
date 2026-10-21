@@ -1,5 +1,7 @@
 package com.example.familyapp.ui
 
+import androidx.compose.ui.res.stringResource
+import com.example.familyapp.R
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -49,16 +51,16 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            IconButton(onClick = onOpenMenu) { Icon(Icons.Default.Menu, contentDescription = "Open menu") }
+            IconButton(onClick = onOpenMenu) { Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.open_menu)) }
             Button(enabled = !saving, onClick = onNewList) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Spacer(Modifier.width(6.dp))
-                Text("New list")
+                Text(stringResource(R.string.new_list))
             }
         }
-        Text("Shopping Lists", style = MaterialTheme.typography.headlineMedium)
-        if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
-        if (lists.isEmpty()) Text("No lists yet. Tap New list to create your first list.")
+        Text(stringResource(R.string.shopping_lists_title), style = MaterialTheme.typography.headlineMedium)
+        if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
+        if (lists.isEmpty()) Text(stringResource(R.string.no_lists))
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(lists, key = { it.id }) { list ->
                 Card(Modifier.fillMaxWidth()) {
@@ -68,7 +70,7 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
                             viewModel.clearListError()
                             selectedListId = list.id
                         },
-                        onLongClickLabel = "List actions",
+                        onLongClickLabel = stringResource(R.string.list_actions),
                         onLongClick = {
                             viewModel.clearListError()
                             actionsId = list.id
@@ -88,7 +90,7 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
                 Column {
                 if (sharing != null && sharing.access[list.id]?.role != "admin") {
                     TextButton(enabled = sharing.ready && !sharing.busy, onClick = { actionsId = null; onShare(list.id) }) {
-                        Text("Share / Manage members")
+                        Text(stringResource(R.string.share_members))
                     }
                 }
                 }
@@ -98,15 +100,15 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
                     actionsId = null
                     renameId = list.id
                     renameName = list.name
-                }) { Text("Rename") }
+                }) { Text(stringResource(R.string.rename)) }
             },
             dismissButton = {
                 Row {
-                    TextButton(onClick = { actionsId = null }) { Text("Cancel") }
+                    TextButton(onClick = { actionsId = null }) { Text(stringResource(R.string.cancel)) }
                     if (sharing == null || (sharing.ready && sharing.access[list.id]?.role != "admin")) TextButton(enabled = !saving, onClick = {
                         actionsId = null
                         deleteId = list.id
-                    }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                    }) { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }
                 }
             }
         )
@@ -114,41 +116,41 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
     if (renameId != null) {
         AlertDialog(
             onDismissRequest = { if (!saving) renameId = null },
-            title = { Text("Rename list") },
+            title = { Text(stringResource(R.string.rename_list)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(value = renameName, onValueChange = { renameName = it },
-                        label = { Text("List name") }, singleLine = true, enabled = !saving)
-                    if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+                        label = { Text(stringResource(R.string.list_name)) }, singleLine = true, enabled = !saving)
+                    if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
                 }
             },
             confirmButton = {
                 TextButton(enabled = renameName.isNotBlank() && !saving, onClick = {
                     renameId?.let { id -> viewModel.renameList(id, renameName) { renameId = null } }
-                }) { Text("Save") }
+                }) { Text(stringResource(R.string.save)) }
             },
             dismissButton = {
-                TextButton(enabled = !saving, onClick = { renameId = null }) { Text("Cancel") }
+                TextButton(enabled = !saving, onClick = { renameId = null }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
     lists.firstOrNull { it.id == deleteId }?.let { list ->
         AlertDialog(
             onDismissRequest = { if (!saving) deleteId = null },
-            title = { Text("Delete list?") },
+            title = { Text(stringResource(R.string.delete_list)) },
             text = {
                 Column {
-                    Text("Delete ${list.name} and its entries? Your catalog and other lists are kept.")
-                    if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete_list_body, list.name))
+                    if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
                 }
             },
             confirmButton = {
                 TextButton(enabled = !saving, onClick = {
                     viewModel.deleteList(list.id) { deleteId = null }
-                }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                }) { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(enabled = !saving, onClick = { deleteId = null }) { Text("Cancel") }
+                TextButton(enabled = !saving, onClick = { deleteId = null }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -185,30 +187,33 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(onClick = onBack) { Text("Back to lists") }
+            TextButton(onClick = onBack) { Text(stringResource(R.string.back_lists)) }
             Button(enabled = !saving, onClick = {
                 viewModel.clearListError()
                 search = ""
                 pickerOpen = true
-            }) { Text("Add product") }
+            }) { Text(stringResource(R.string.add_product)) }
         }
         Text(name, style = MaterialTheme.typography.headlineMedium)
-        Text("${entries.count { it.checked }} of ${entries.size} purchased")
-        Text("Hold a product for photos or removal.")
-        if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
-        if (photoError != null) Text(photoError!!, color = MaterialTheme.colorScheme.error)
-        if (entries.isEmpty()) Text("This list is empty. Add a product from your catalog.")
+        Text(stringResource(R.string.purchased_count, entries.count { it.checked }, entries.size))
+        Text(stringResource(R.string.hold_list_product))
+        if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
+        if (photoError != null) Text(localizedMessage(photoError!!), color = MaterialTheme.colorScheme.error)
+        if (entries.isEmpty()) Text(stringResource(R.string.empty_list))
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(false, true).forEach { purchased ->
                 val section = entries.filter { it.checked == purchased }
                 if (section.isNotEmpty()) item(key = if (purchased) "purchased-heading" else "outstanding-heading") {
-                    Text(if (purchased) "Purchased" else "To buy", style = MaterialTheme.typography.titleLarge)
+                    Text(if (purchased) stringResource(R.string.purchased) else stringResource(R.string.to_buy), style = MaterialTheme.typography.titleLarge)
                 }
                 items(section, key = { it.id }) { item ->
+                val purchasedDescription = stringResource(R.string.purchased_description, item.title)
+                val decreaseDescription = stringResource(R.string.decrease_description, item.title)
+                val increaseDescription = stringResource(R.string.increase_description, item.title)
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.fillMaxWidth().combinedClickable(
                         enabled = !saving && !photoSaving,
-                        onClick = {}, onLongClickLabel = "Item actions",
+                        onClick = {}, onLongClickLabel = stringResource(R.string.item_actions),
                         onLongClick = {
                             viewModel.clearCatalogError()
                             viewModel.clearListError()
@@ -217,7 +222,7 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                     ).padding(12.dp)) {
                         Row(Modifier.fillMaxWidth()) {
                             Checkbox(checked = item.checked, enabled = !saving,
-                                modifier = Modifier.semantics { contentDescription = "Purchased: ${item.title}" },
+                                modifier = Modifier.semantics { contentDescription = purchasedDescription },
                                 onCheckedChange = { viewModel.checkItem(item.id, it) })
                             ProductPhoto(catalog.firstOrNull { it.id == item.catalogItemId }?.photoFileName, item.title)
                             Column(Modifier.weight(1f).padding(top = 8.dp)) {
@@ -229,11 +234,11 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Row {
                                 TextButton(enabled = !saving && item.qty > 1,
-                                    modifier = Modifier.semantics { contentDescription = "Decrease quantity: ${item.title}" },
+                                    modifier = Modifier.semantics { contentDescription = decreaseDescription },
                                     onClick = { viewModel.changeQuantity(item.id, -1) }) { Text("−") }
                                 Text(item.qty.toString(), Modifier.padding(top = 14.dp))
                                 TextButton(enabled = !saving && item.qty < Int.MAX_VALUE,
-                                    modifier = Modifier.semantics { contentDescription = "Increase quantity: ${item.title}" },
+                                    modifier = Modifier.semantics { contentDescription = increaseDescription },
                                     onClick = { viewModel.changeQuantity(item.id, 1) }) { Text("+") }
                             }
                         }
@@ -247,7 +252,7 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                     HorizontalDivider()
                     OutlinedButton(modifier = Modifier.fillMaxWidth(), enabled = !saving, onClick = {
                         viewModel.clearListError(); clearOpen = true
-                    }) { Text("Clear purchased") }
+                    }) { Text(stringResource(R.string.clear_purchased)) }
                 }
             }
         }
@@ -255,48 +260,48 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
 
     if (clearOpen) {
         AlertDialog(onDismissRequest = { if (!saving) clearOpen = false },
-            title = { Text("Clear purchased?") },
+            title = { Text(stringResource(R.string.clear_purchased_confirm)) },
             text = { Column {
-                Text("Remove purchased entries from $name? Unpurchased entries, your catalog and other lists are kept.")
-                if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+                Text(stringResource(R.string.clear_body, name))
+                if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
             } },
             confirmButton = { TextButton(enabled = !saving, onClick = {
                 viewModel.clearPurchased(listId) { clearOpen = false }
-            }) { Text("Clear purchased") } },
-            dismissButton = { TextButton(enabled = !saving, onClick = { clearOpen = false }) { Text("Cancel") } })
+            }) { Text(stringResource(R.string.clear_purchased)) } },
+            dismissButton = { TextButton(enabled = !saving, onClick = { clearOpen = false }) { Text(stringResource(R.string.cancel)) } })
     }
     if (repeatProduct != null) {
         val quantity = repeatQuantity.toIntOrNull()?.takeIf { it > 0 }
         AlertDialog(onDismissRequest = { if (!saving) viewModel.cancelRepeatPurchase() },
-            title = { Text("Buy again?") },
+            title = { Text(stringResource(R.string.buy_again_confirm)) },
             text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("${catalog.firstOrNull { it.id == repeatProduct }?.title ?: "This product"} is already purchased. Add it as unpurchased with a new quantity?")
+                Text(stringResource(R.string.repeat_body, catalog.firstOrNull { it.id == repeatProduct }?.title ?: stringResource(R.string.this_product)))
                 OutlinedTextField(repeatQuantity, { repeatQuantity = it.filter(Char::isDigit).take(10) },
-                    label = { Text("New quantity") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    label = { Text(stringResource(R.string.new_quantity)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true, enabled = !saving, isError = quantity == null)
-                if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+                if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
             } },
             confirmButton = { TextButton(enabled = !saving && quantity != null, onClick = {
                 viewModel.addProductToList(listId, repeatProduct!!, quantity) { pickerOpen = false }
-            }) { Text("Buy again") } },
-            dismissButton = { TextButton(enabled = !saving, onClick = { viewModel.cancelRepeatPurchase() }) { Text("Cancel") } })
+            }) { Text(stringResource(R.string.buy_again)) } },
+            dismissButton = { TextButton(enabled = !saving, onClick = { viewModel.cancelRepeatPurchase() }) { Text(stringResource(R.string.cancel)) } })
     }
     if (pickerOpen && !creating && repeatProduct == null) {
         AlertDialog(
             onDismissRequest = { if (!saving) pickerOpen = false },
-            title = { Text("Choose a product") },
+            title = { Text(stringResource(R.string.choose_product)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = search, onValueChange = { search = it },
-                        label = { Text("Search products") }, singleLine = true,
+                        label = { Text(stringResource(R.string.search_products)) }, singleLine = true,
                         modifier = Modifier.fillMaxWidth(), enabled = !saving
                     )
                     val suggestions = if (search.isBlank()) emptyList() else
                         catalog.filter { it.title.startsWith(search.trim(), ignoreCase = true) }
-                    if (catalog.isEmpty()) Text("Your catalog is empty. Create a product below.")
-                    else if (search.isBlank()) Text("Type a product name to see suggestions.")
-                    else if (suggestions.isEmpty()) Text("No matching products. You can create one below.")
+                    if (catalog.isEmpty()) Text(stringResource(R.string.empty_catalog))
+                    else if (search.isBlank()) Text(stringResource(R.string.search_hint))
+                    else if (suggestions.isEmpty()) Text(stringResource(R.string.no_matches))
                     LazyColumn(Modifier.heightIn(max = 300.dp)) {
                         items(suggestions, key = { it.id }) { product ->
                             Row(Modifier.fillMaxWidth().clickable(enabled = !saving) {
@@ -310,7 +315,7 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                             }
                         }
                     }
-                    if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+                    if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
                 }
             },
             confirmButton = {
@@ -319,29 +324,29 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                     title = search.trim()
                     category = ""
                     creating = true
-                }) { Text("New product") }
+                }) { Text(stringResource(R.string.new_product)) }
             },
             dismissButton = {
-                TextButton(enabled = !saving, onClick = { pickerOpen = false }) { Text("Cancel") }
+                TextButton(enabled = !saving, onClick = { pickerOpen = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
     if (pickerOpen && creating) {
         AlertDialog(
             onDismissRequest = { if (!saving) creating = false },
-            title = { Text("New product") },
+            title = { Text(stringResource(R.string.new_product)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(value = title, onValueChange = { title = it },
-                        label = { Text("Product name") }, singleLine = true, enabled = !saving)
+                        label = { Text(stringResource(R.string.product_name)) }, singleLine = true, enabled = !saving)
                     OutlinedTextField(value = category, onValueChange = { category = it },
-                        label = { Text("Category") }, singleLine = true, enabled = !saving,
-                        supportingText = { Text("Leave blank to use Other") })
+                        label = { Text(stringResource(R.string.category)) }, singleLine = true, enabled = !saving,
+                        supportingText = { Text(stringResource(R.string.category_hint)) })
                     if (catalog.any { it.title.equals(title.trim(), ignoreCase = true) }) {
-                        Text("This name already exists. Cancel to choose it, or save to create a separate product.")
+                        Text(stringResource(R.string.name_exists))
                     }
-                    Text("Saved to your catalog and added to this list.")
-                    if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.save_catalog_list))
+                    if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
                 }
             },
             confirmButton = {
@@ -350,10 +355,10 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                         creating = false
                         pickerOpen = false
                     }
-                }) { Text("Save and add") }
+                }) { Text(stringResource(R.string.save_add)) }
             },
             dismissButton = {
-                TextButton(enabled = !saving, onClick = { creating = false }) { Text("Cancel") }
+                TextButton(enabled = !saving, onClick = { creating = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -373,10 +378,10 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                     TextButton(enabled = !saving, modifier = Modifier.fillMaxWidth(), onClick = {
                         itemActionsId = null
                         removingId = item.id
-                    }) { Text("Remove from list") }
+                    }) { Text(stringResource(R.string.remove_from_list)) }
                 }
             },
-            confirmButton = { TextButton(onClick = { itemActionsId = null }) { Text("Cancel") } })
+            confirmButton = { TextButton(onClick = { itemActionsId = null }) { Text(stringResource(R.string.cancel)) } })
     }
     catalog.firstOrNull { it.id == viewingPhotoId }?.let { product ->
         ProductPhotoDialog(product) { viewingPhotoId = null }
@@ -387,20 +392,20 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
     entries.firstOrNull { it.id == removingId }?.let { item ->
         AlertDialog(
             onDismissRequest = { if (!saving) removingId = null },
-            title = { Text("Remove product?") },
+            title = { Text(stringResource(R.string.remove_product)) },
             text = {
                 Column {
-                    Text("Remove ${item.title} from this list? The catalog and other lists are kept.")
-                    if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.remove_body, item.title))
+                    if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
                 }
             },
             confirmButton = {
                 TextButton(enabled = !saving, onClick = {
                     viewModel.removeListItem(item.id) { removingId = null }
-                }) { Text("Remove") }
+                }) { Text(stringResource(R.string.remove)) }
             },
             dismissButton = {
-                TextButton(enabled = !saving, onClick = { removingId = null }) { Text("Cancel") }
+                TextButton(enabled = !saving, onClick = { removingId = null }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }

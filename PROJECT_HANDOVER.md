@@ -356,3 +356,38 @@ outlined копче со простор и divider под последниот p
 потврди сите оригинални list/item/catalog полиња непроменети, со 0 pending.
 Последен потврден GitHub commit останува 41356ca. Purchased фазата e9d360b и оваа
 поновa корекција се локални, без одобрение за push. Honor сè уште чека update.
+
+## EN / MK — последна состојба, 22 октомври 2026
+
+Owner побара директни EN / MK копчиња најдолу во hamburger menu, без дополнителен
+Settings екран. Имплементирани се 132 EN/MK ресурси за UI, потврди, accessibility,
+account/sharing/sync пораки. English е експлицитен default, MK е кирилица. Изборот
+е по уред и се зачувува со официјален AppCompat per-app locale механизам.
+MainActivity е AppCompatActivity со соодветна host тема; Compose архитектурата,
+package, DB и OAuth callback остануваат. Види docs/LANGUAGES.md за деталите.
+Не се преведуваат внесените имиња, постојните default списоци/категории или брендот.
+
+Checkpoint пред работа: checkpoint-before-languages-2026-10-22 на 60a07e0.
+Последен owner-confirmed GitHub push е 60a07e0; ова го заменува постарото 41356ca
+тврдење погоре. Новата EN/MK верзија е локална додека owner не направи push.
+Секогаш дај git push origin master по зачувување; owner засега ја извршува командата.
+
+Проверки: app/test APK build успешен, 3 unit tests успешни, lint успешен со
+постојни photo/dependency/config предупредувања (не е тврдење дека е warning-free).
+7 постојни isolated UI tests и новиот MK home/catalog/language-choice тест поминаа.
+132 EN/MK ресурси имаат усогласени format аргументи. Синтетичкиот локализиран test
+context го проверува home/catalog; вистинскиот MK Add product dialog е проверен
+одделно на Note 20. Првичните проблеми беа во test fixture/selector и се поправени.
+
+Note 20 е privately backed up и update-installed. Реално EN -> MK, целосно force-stop
+и повторно отворање го задржуваат MK; MK dialog преводот е потврден. Вратен е EN.
+Backup comparison: сите оригинални list/item/catalog полиња непроменети, 3 lists,
+6 entries, 5 catalog, 0 pending. Нема нова physical two-phone sync проверка во оваа фаза.
+Завршното test APK градење е преку Android Studio: shell Gradle повторно доби
+Windows project-directory write ограничување иако grants се дадени. IDE build помина.
+Не менувај security settings; користи IDE Gradle task launcher ако ова се повтори.
+
+Следно: owner да поврзе Honor со USB, отклучен, со интернет. Направи приватен backup,
+update-install со сите purchased/drawer/EN-MK измени, зачувај го неговиот account и
+податоци. Провери EN/MK persistence и на постариот Android и видливоста/синхронизацијата
+на постојните споделени листи. Не користи connected test runner или uninstall.

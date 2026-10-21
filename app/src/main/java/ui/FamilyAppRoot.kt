@@ -1,11 +1,13 @@
 package com.example.familyapp.ui
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.FilterChip
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +38,7 @@ import com.example.familyapp.sync.SharingState
 @Composable
 fun FamilyAppRoot(
     viewModel: MainMenuViewModel,
-    accountLabel: String = "Account",
+    accountLabel: String = stringResource(R.string.account),
     onAccount: (() -> Unit)? = null,
     sharing: SharingState? = null,
     onSharingAction: (String, Long?, String, String?, String?) -> Unit = { _, _, _, _, _ -> }
@@ -60,36 +62,49 @@ fun FamilyAppRoot(
         drawerState = drawer,
         drawerContent = {
             ModalDrawerSheet {
-                Column(Modifier.safeDrawingPadding().padding(16.dp)) {
-                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall)
-                    Spacer(Modifier.height(24.dp))
-                    if (onAccount != null) {
-                        NavigationDrawerItem(
-                            label = { Text(accountLabel, style = MaterialTheme.typography.titleMedium) }, selected = false,
-                            onClick = { scope.launch { drawer.close() }; onAccount() }
+                Column(Modifier.fillMaxHeight().safeDrawingPadding().padding(16.dp)) {
+                    Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall)
+                        Spacer(Modifier.height(24.dp))
+                        if (onAccount != null) {
+                            NavigationDrawerItem(
+                                label = { Text(accountLabel, style = MaterialTheme.typography.titleMedium) }, selected = false,
+                                onClick = { scope.launch { drawer.close() }; onAccount() }
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            HorizontalDivider()
+                            Spacer(Modifier.height(20.dp))
+                        }
+                        if (sharing != null) NavigationDrawerItem(
+                            label = { Text(stringResource(R.string.invitations_count, sharing.invitations.count { it.incoming })) }, selected = false,
+                            onClick = { sharingList = null; sharingOpen = true; scope.launch { drawer.close() } }
                         )
-                        Spacer(Modifier.height(12.dp))
-                        HorizontalDivider()
-                        Spacer(Modifier.height(20.dp))
+                        NavigationDrawerItem(
+                            label = { Text(stringResource(R.string.shopping_lists)) }, selected = !catalogOpen,
+                            onClick = {
+                                catalogOpen = false
+                                scope.launch { drawer.close() }
+                            }
+                        )
+                        NavigationDrawerItem(
+                            label = { Text(stringResource(R.string.item_list)) }, selected = catalogOpen,
+                            onClick = {
+                                catalogOpen = true
+                                scope.launch { drawer.close() }
+                            }
+                        )
                     }
-                    if (sharing != null) NavigationDrawerItem(
-                        label = { Text("Invitations (${sharing.invitations.count { it.incoming }})") }, selected = false,
-                        onClick = { sharingList = null; sharingOpen = true; scope.launch { drawer.close() } }
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Shopping lists") }, selected = !catalogOpen,
-                        onClick = {
-                            catalogOpen = false
-                            scope.launch { drawer.close() }
+                    HorizontalDivider()
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Text(stringResource(R.string.language), Modifier.weight(1f))
+                        val language = LocalConfiguration.current.locales[0].language
+                        listOf("en" to "EN", "mk" to "MK").forEach { (tag, label) ->
+                            FilterChip(selected = language == tag, onClick = {
+                                if (language != tag) AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
+                            }, label = { Text(label) })
                         }
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Item list") }, selected = catalogOpen,
-                        onClick = {
-                            catalogOpen = true
-                            scope.launch { drawer.close() }
-                        }
-                    )
+                    }
                 }
             }
         }
@@ -107,12 +122,12 @@ fun FamilyAppRoot(
     BackHandler(enabled = drawer.isOpen) { scope.launch { drawer.close() } }
     if (newListOpen) {
         AlertDialog(onDismissRequest = { if (!saving) newListOpen = false },
-            title = { Text("Create list") },
+            title = { Text(stringResource(R.string.create_list)) },
             text = {
                 Column {
                     OutlinedTextField(value = newListName, onValueChange = { newListName = it },
-                        label = { Text("List name") }, singleLine = true, enabled = !saving)
-                    if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error)
+                        label = { Text(stringResource(R.string.list_name)) }, singleLine = true, enabled = !saving)
+                    if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
                 }
             },
             confirmButton = {
@@ -121,10 +136,10 @@ fun FamilyAppRoot(
                         newListOpen = false
                         catalogOpen = false
                     }
-                }) { Text("Create") }
+                }) { Text(stringResource(R.string.create)) }
             },
             dismissButton = {
-                TextButton(enabled = !saving, onClick = { newListOpen = false }) { Text("Cancel") }
+                TextButton(enabled = !saving, onClick = { newListOpen = false }) { Text(stringResource(R.string.cancel)) }
             })
     }
 }
