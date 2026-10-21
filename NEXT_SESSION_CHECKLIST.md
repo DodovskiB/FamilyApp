@@ -167,3 +167,12 @@ App/test build и 5 UI tests поминаа; Note 20 ажуриран, ориг�
 - [ ] Поврзи Honor, приватен backup, update-install без uninstall.
 - [ ] Провери јазик по restart на Honor и двата account-а/shared листи.
 - [ ] Потоа договор за следен дизајн/продуктен чекор; photos/links sharing останува идно.
+
+## Honor update — потврдено 22 октомври
+
+- [x] Приватен backup и update-install со најновата EN/MK APK.
+- [x] MK останува по cold restart на Android 12; вратен EN.
+- [x] Вториот account задржан, Up to date, оригинални записи непроменети во двете бази.
+- [ ] Следен двонасочен purchased/shared edit тест по потреба.
+- [ ] Договор со owner дали да подготвиме Play Internal testing (US$25 developer регистрација)
+      или засега директен APK. Нема одобрен Play upload/уплата.

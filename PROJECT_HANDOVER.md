@@ -391,3 +391,26 @@ Windows project-directory write ограничување иако grants се д
 update-install со сите purchased/drawer/EN-MK измени, зачувај го неговиот account и
 податоци. Провери EN/MK persistence и на постариот Android и видливоста/синхронизацијата
 на постојните споделени листи. Не користи connected test runner или uninstall.
+
+## Honor ажуриран — 22 октомври 2026
+
+Honor (Android 12/API 31) е privately backed up и update-installed со APK од
+EN/MK фазата 57ceee8. EN -> MK -> force-stop -> cold restart го задржа MK,
+потврдувајќи и pre-Android-13 persistence. Потоа е вратен EN. Истиот втор Google
+account е задржан, Account покажува Up to date. Сите оригинални list/item/catalog
+полиња во двете локални бази се идентични со backup, 0 pending. На home се гледаат
+3 постојни листи и + New list. Нема ново двонасочно shared-data edit тестирање.
+
+Owner праша за приватна Play Store дистрибуција. Предлог (сè уште не е одобрен
+за извршување): Internal testing до 100 Google-email тестери со opt-in линк,
+без јавна search видливост; developer регистрација има еднократни US$25.
+Алтернатива: директен APK со рачно ажурирање. Пред Play upload треба release
+signing/backup на клуч, AAB, проверка на Google sign-in за тестерите и соодветна
+privacy/account-delete подготовка. Нема создаден Play account, уплата или upload.
+Play тестер пристап и list-sharing дозволи се посебни. За подоцнежна production
+пријава на нов personal developer account важи closed test 12 testers/14 days;
+тоа не е предуслов за нашиот почетен Internal testing.
+Официјални извори проверени на 2026-10-22:
+https://support.google.com/googleplay/android-developer/answer/9845334
+https://support.google.com/googleplay/android-developer/answer/6112435
+https://support.google.com/googleplay/android-developer/answer/14151465
