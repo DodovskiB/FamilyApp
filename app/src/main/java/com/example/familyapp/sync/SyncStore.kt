@@ -24,22 +24,29 @@ class SyncStore(private val room: AppDatabase) {
         db.execSQL("CREATE TABLE IF NOT EXISTS shopping_shared_access (remote_id TEXT PRIMARY KEY NOT NULL, owner_id TEXT NOT NULL)")
         // Preserve rejected offline work privately, without ever retrying it under personal ownership.
         db.execSQL("CREATE TABLE IF NOT EXISTS shopping_revoked_changes AS SELECT * FROM shopping_sync_outbox WHERE 0")
+        db.execSQL("INSERT OR IGNORE INTO shopping_sync_meta VALUES ('map_trigger_version','0')")
+        val refreshTriggers = value(db, "map_trigger_version") != "1"
         // Triggers capture mutations in the same transaction as the existing DAO writes.
         definitions.forEach { definition ->
             val (table, entity) = definition
             listOf("INSERT", "UPDATE", "DELETE").forEach { action ->
                 val row = if (action == "DELETE") "OLD" else "NEW"
+                if (refreshTriggers) db.execSQL("DROP TRIGGER IF EXISTS shopping_sync_${entity}_${action.lowercase()}")
                 val mask = if (action != "UPDATE") "255" else mask(entity)
                 val condition = "(SELECT value FROM shopping_sync_meta WHERE name='enabled')='1' AND " +
                     "(SELECT value FROM shopping_sync_meta WHERE name='applying')='0'" +
                     if (action == "UPDATE") " AND ($mask) != 0" else ""
                 db.execSQL("""CREATE TRIGGER IF NOT EXISTS shopping_sync_${entity}_${action.lowercase()}
                     AFTER $action ON $table WHEN $condition BEGIN
-                    INSERT OR IGNORE INTO shopping_sync_map VALUES ('$entity', $row.id, $uuidSql, 1);
+                    INSERT INTO shopping_sync_map SELECT '$entity', $row.id, $uuidSql, 1
+                    WHERE NOT EXISTS(SELECT 1 FROM shopping_sync_map WHERE entity='$entity' AND local_id=$row.id);
                     ${enqueue(entity, row, action.lowercase(), mask)};
                     END""")
             }
         }
+        // Room @Update uses UPDATE OR ABORT, whose policy overrides a trigger's OR IGNORE.
+        // Avoid the conflict altogether and upgrade existing installations without changing IDs.
+        if (refreshTriggers) setValue(db, "map_trigger_version", "1")
     }
 
     suspend fun isSeeded(): Boolean = transaction { value(it, "seeded") == "1" }
@@ -275,6 +282,13 @@ class SyncStore(private val room: AppDatabase) {
         if (exists) db.update(table, android.database.sqlite.SQLiteDatabase.CONFLICT_ABORT, values, "id=?", arrayOf(local))
         else {
             local?.let { values.put("id", it) }
+            if (entity == "item") {
+                values.getAsLong("catalogItemId")?.let { catalog ->
+                    db.query("SELECT linkUrl,photoFileName FROM catalog_items WHERE id=?", arrayOf(catalog)).use {
+                        if (it.moveToFirst()) { values.put("linkUrl", if(it.isNull(0)) null else it.getString(0)); values.put("photoFileName", if(it.isNull(1)) null else it.getString(1)) }
+                    }
+                }
+            }
             local = db.insert(table, android.database.sqlite.SQLiteDatabase.CONFLICT_ABORT, values)
             db.execSQL("INSERT OR REPLACE INTO shopping_sync_map VALUES (?, ?, ?, 1)", arrayOf<Any?>(entity, local, id))
         }

@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
                 val db = remember(account.databaseName) { AppDatabase.getInstance(applicationContext, account.databaseName) }
                 val setup = if (account.databaseName == "familyapp.db") "familyapp_setup" else "setup_${account.databaseName}"
                 val sync = remember(account.userId, db) {
-                    account.userId?.let { SyncController(db, SupabaseSyncTransport(AccountRepository.getInstance(applicationContext), it)) }
+                    account.userId?.let { SyncController(db, SupabaseSyncTransport(AccountRepository.getInstance(applicationContext), it), ProductPhotoStore(applicationContext, account.databaseName)) }
                 }
                 val syncStatus = sync?.status?.collectAsState()?.value
                 val sharing = sync?.sharing?.collectAsState()?.value
@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity() {
                             override val viewModelStore = ViewModelStore()
                         } }
                         DisposableEffect(owner) { onDispose { owner.viewModelStore.clear() } }
-                        val repo = remember(db) { RoomFamilyRepository(db, ProductPhotoStore(applicationContext)) }
+                        val repo = remember(db) { RoomFamilyRepository(db, ProductPhotoStore(applicationContext, account.databaseName)) }
                         val mainMenuViewModel: MainMenuViewModel = viewModel(
                             viewModelStoreOwner = owner,
                             factory = MainMenuViewModelFactory(repository = repo)

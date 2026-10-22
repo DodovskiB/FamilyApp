@@ -1,5 +1,9 @@
 # Shopping List App — продолжување од друг разговор или компјутер
 
+> Најново: shared photos/links се довршени и проверени во 1.2.0-preview/4 на
+> 22 октомври 2026. Прочитај ја последната секција и docs/SHARED_PRODUCT_MEDIA.md.
+> Постарите WIP предупредувања подолу се историски.
+
 Последно ажурирање: **21 октомври 2026**, Europe/Skopje.
 
 Овој документ е пренослива состојба на проектот, а не копија од целиот разговор.
@@ -483,6 +487,18 @@ Account останува најавен и покажува Up to date. Пред
 претходната EN/MK debug верзија; новиот release APK за сопругата е одделен,
 со release key како што е документирано. Нема промени на код или нови features.
 
+## Shared photos/links — WIP pause, 22 октомври 2026
+
+Owner побара споделени слики/линкови со phone compression/cache и без платени услуги.
+Започната е локална имплементација; compileDebugKotlin помина, но нема SQL deploy,
+нови tests или APK install. Стабилните телефони/сервер остануваат непроменети.
+Owner има малку преостанат usage и побара да застанеме ако не сме блиску до крај.
+Работата е зачувана во посебна wip/shared-product-media гранка. Пред продолжување
+ПРОЧИТАЈ docs/SHARED_MEDIA_WIP.md — содржи дизајн, проверки и конкретни познати
+недовршени случаи. Не инсталирај WIP: клиентот веќе повикува неподготвени media RPCs.
+master останува на 9366d38, последен потврден human push е d19ca1a. Посебен Gmail
+е само идеја за утре; не е создаден account, нема сменет OAuth или billing.
+
 ## Resume shared media WIP — 22 октомври 2026
 
 Owner побара да застанеме поради мал преостанат usage ако не сме при крај. Новото
@@ -494,3 +510,54 @@ wip/shared-product-media, па прочитај docs/SHARED_MEDIA_WIP.md со д
 Checkout е вратен на master со стабилниот код за Android Studio/телефоните. Последен
 потврден GitHub push е d19ca1a; поновите checkpoints чекаат owner push. Gmail account
 е само owner идеја за утре, не е создаден/поврзан сервис и нема billing промени.
+
+## Shared product media — завршено и проверено, 22 октомври 2026
+
+Продолжено е од owner-pushed wip/shared-product-media c1528da; потврден remote master
+е 0e64a94. Претходните WIP/backend предупредувања се надминати. Детален актуелен опис:
+docs/SHARED_PRODUCT_MEDIA.md. Не повторувај веќе применета CREATE миграција на серверот.
+
+Имплементирано: Room v6 backfill, entry-level link/photo за Owner/Admin, камера/галерија
+и long press и без приватен catalog reference; приватен Supabase JPEG bucket, 1024px /
+250 KiB компресија без EXIF, account cache, независни durable field queues, guarded
+upload acknowledgments, missing/corrupt cache repair, revoke archive, idempotent retry
+и merge-safe media replay. Catalog останува приватен; entry edit не го менува каталогот.
+Buy again ги задржува актуелните entry attachments. Старите local UUID фото-копии се
+чуваат додека има row/queue референца; live archived purchase photos не се бришат.
+
+Поправен е и SQLite trigger проблем откриен со реален regression test: Room UPDATE OR
+ABORT го надвладува trigger INSERT OR IGNORE. Conditional mapping insert и еднократен
+trigger upgrade ги зачувуваат постојните sync UUIDs и operations. Архитектурата останува.
+
+Извршено: debug/release/test APK build + 3 unit tests; 28 различни storage/migration/sync
+checks, 3 photo/link UI checks и 1 opt-in live Storage test. Тестирани се компресија,
+metadata/original preservation, queue restart/races, unlinked shared entry UI, private
+catalog isolation, removal/download repair, независни offline edits и actual cloud
+object cleanup. SQL rollback tests поминаа за Owner/Admin/stranger, pending/revoked
+access, replay/merge, null mask, invalid link/path и deleted entry non-resurrection.
+Миграцијата 20261022020000_shared_media.sql е поставена и backend работи. Нема billing.
+
+Двата телефона се update-installed со DEBUG 1.2.0-preview (versionCode 4), без uninstall.
+Приватни pre/post backups се во chat work/, надвор од Git. Honor original guest/account
+базите се зачувани; active account DB v5->v6. Note 20 ги задржува сите оригинални 3 листи,
+6 entries, 5 catalog rows и старите sync UUIDs; main/media queues се празни. Реални account
+екрани покажаа Up to date. Нема sign-out, нов Gmail или промена на OAuth provider.
+
+Physical acceptance: привремена Media sharing test листа со генерирана зелена слика
+и example.com линк беше споделена Owner Note 20 -> Admin Honor. Owner потврди дека
+View photo на Honor работи. Honor смени линк и ја тргна сликата; серверски assertions
+и вистинскиот Note 20 Edit link/photo menu ги потврдија промените. Само fixture листата,
+entry и cloud image се исчистени. Storage orphan query потврди реално бришење на object.
+Honor не беше повторно USB поврзан по cleanup; финалното исчезнување не е ADB проверено.
+Помошниот opt-in PhysicalMediaTest бара runtime email args, без лични emails во source.
+
+Нов release APK за НОВИ тестери: Shopping-List-App-1.2.0-preview.apk во chat workspace.
+Истиот постоен private release key, v2/v3 verify, applicationId/label/version проверени;
+SHA256 1ED69FDD5ED1D5D4666990B27D98C1A4DE8FEC1B0B02352DE8FCF0E888367F7C.
+Нема private DB/images/fixture state/signing secrets во APK. Не overwrite стар distributed
+APK, не заменувај debug personal install со release certificate и не uninstall телефони.
+Нема automatic updater, public upload или agent push. Owner добива git push origin master.
+
+Следно: сопругата/нов тестер со release APK, OAuth audience ако е во Testing, fresh
+3 defaults/empty catalog, login/invite и секојдневна shopping проба. Потоа договор за
+дизајн/следна продуктна функција. Бесплатни квоти остануваат; cache не заменува сервер.

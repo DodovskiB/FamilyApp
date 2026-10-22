@@ -212,3 +212,12 @@ and personal catalog. Preserve existing account data on sign-in. Preview 1.1-pre
 debug-signed personal test phones are not replaced/uninstalled. See
  docs/PRIVATE_APK_DISTRIBUTION.md for build, signing, updates and limitations.
 No automatic updater or catalog rename/ephemeral-product feature is approved here.
+
+## Shared product media — resumed 2026-10-22
+
+Owner approved list-scoped photo/link sharing, phone compression and local cache on
+Supabase Free. Implemented in 1.2.0-preview/4 with private storage, existing Owner/Admin
+permissions, durable offline field queues, Room v6 migration and long-press actions.
+Private catalog edits and list-entry edits remain separate. See
+docs/SHARED_PRODUCT_MEDIA.md for verified results and remaining device acceptance.
+No new backend service, paid quota, public APK upload or automatic updater.

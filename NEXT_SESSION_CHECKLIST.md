@@ -1,5 +1,8 @@
 # Shopping List App — чек-листа за продолжување
 
+> Актуелно: 1.2.0-preview/4, shared photos/links се завршени и проверени.
+> Следи ја последната секција; старите чекори/WIP предупредувања се историски.
+
 Подготвено: 21 октомври 2026. За следната сесија: 22 октомври 2026.
 
 Цел: прво да ја потврдиме синхронизацијата на два вистински телефона, па да
@@ -193,3 +196,29 @@ App/test build и 5 UI tests поминаа; Note 20 ажуриран, ориг�
 - [ ] Користи го новиот 1.1.1-preview APK за новиот телефон.
 - [ ] Провери Google email/OAuth audience, fresh defaults, login и sharing.
 - [ ] Owner push за rename commit: git push origin master.
+
+## ПРВО за следната сесија — shared media WIP
+
+- [ ] Отвори wip/shared-product-media и прочитај docs/SHARED_MEDIA_WIP.md.
+- [ ] Доврши edge cases, isolated tests и SQL rollback authorization tests.
+- [ ] Дури потоа server deploy, live checks и private-backed-up phone update.
+- [ ] Не инсталирај го тековниот WIP код: backend media RPCs уште не се поставени.
+- [ ] Gmail account идејата останува за owner утре; нема billing/нов account.
+
+## Најново — shared photos/links, 22 октомври 2026
+
+- [x] Room v6 backfill и непроменети оригинални shopping податоци.
+- [x] 1024px / 250 KiB JPEG без EXIF; private list-scoped Supabase storage и phone cache.
+- [x] Entry long-press photo/link actions и без приватен каталог; entry edit не менува каталог.
+- [x] SQL rollback authorization/replay/merge tests, migration deploy, без платени услуги.
+- [x] Debug/release build, 3 unit + 32 storage/UI/live инструментални проверки.
+- [x] Note 20/Honor update без uninstall, оригинални податоци зачувани.
+- [x] Различни account-и: фото Note 20 -> Honor, линк edit и photo remove назад до Note 20.
+- [x] Привремени fixture записи и cloud image исчистени; Note 20 main/media queues празни.
+- [x] Release 1.2.0-preview/4 APK со истиот release key, signature/manifest/content verified.
+- [ ] Owner push: git push origin master. Нема agent push или јавен upload.
+- [ ] Нов тестер: користи Shopping-List-App-1.2.0-preview.apk, не постариот 1.1.1 preview.
+- [ ] Google email/OAuth audience проверка ако треба; fresh defaults + empty catalog + sharing.
+- [ ] Дневна проба: items, фотографии/линкови, offline edits, purchased/Buy again/Clear purchased.
+- [ ] Owner: офлајн backup на постојниот private release-signing folder.
+- [ ] Потоа договор за дизајн или следна функција. Automatic updater не е имплементиран.

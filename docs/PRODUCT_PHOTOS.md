@@ -1,5 +1,9 @@
 # Product photos and list labels
 
+> Historical implementation notes. For current per-entry sharing, compression and
+> catalog isolation, see [Shared product media](SHARED_PRODUCT_MEDIA.md). List creation
+> now uses + New list at the upper right of home.
+
 Owner requests: attach product photos from camera or gallery; use English list names;
 show only list names on home cards, while retaining tap and long-press behavior.
 Checkpoint: checkpoint/before-product-photos-20261020 at afcbc7a.

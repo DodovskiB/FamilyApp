@@ -35,11 +35,21 @@ class SharingStorageTest {
         })
         put("invitations", JsonArray(emptyList())); put("members", JsonArray(emptyList()))
     }
-    private inner class Transport : SyncTransport, SharingTransport {
+    private inner class Transport : SyncTransport, SharingTransport, ItemMediaTransport {
         var allowed = true
         var unavailable = false
         val personal = mutableListOf<JsonObject>()
         val shared = mutableListOf<JsonObject>()
+        var mediaWrites = 0
+        override suspend fun mediaSnapshot() = if (!allowed) JsonArray(emptyList()) else buildJsonArray { add(buildJsonObject {
+            put("id",itemId);put("owner_id",ownerId);put("list_id",listId);put("has_media",false)
+            put("link_url",JsonNull);put("photo_path",JsonNull)
+        }) }
+        override suspend fun applyMedia(change: MediaChange,target: JsonObject,photoPath: String?) { mediaWrites++ }
+        override suspend fun uploadPhoto(path: String,bytes: ByteArray) = error("No fixture image should be uploaded")
+        override suspend fun downloadPhoto(path: String): ByteArray = error("No fixture image should be downloaded")
+        override suspend fun obsoletePhotos() = emptyList<String>()
+        override suspend fun deletePhoto(path: String) = Unit
         override suspend fun pull(afterRevision: Long) = JsonArray(emptyList())
         override suspend fun apply(operations: JsonArray) { personal.addAll(operations.map { it.jsonObject }) }
         override suspend fun snapshot(): JsonObject {
@@ -61,6 +71,25 @@ class SharingStorageTest {
         override suspend fun remove(list: String, member: String?, invitation: String?) = Unit
     }
     private fun db() = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+
+    @Test fun revokedMediaIsArchivedAndNeverUploadedUnderPersonalOwnership() = runBlocking {
+        val db=db()
+        try {
+            val remote=Transport();val sync=SyncController(db,remote);sync.synchronize()
+            val repo=RoomFamilyRepository(db);val list=repo.getLists().single()
+            val entry=repo.getItems(list.id,0).single()
+            repo.setItemLink(entry.id,"https://example.com/offline")
+            db.itemDao().setPhoto(entry.id,"${UUID.randomUUID()}.jpg")
+            remote.unavailable=true
+            try { sync.synchronize();fail("Offline capture lost") } catch (_: IllegalStateException) { }
+            assertEquals(2,ItemMediaStore(db).count())
+            remote.unavailable=false;remote.allowed=false
+            sync.synchronize()
+            assertTrue(repo.getLists().isEmpty());assertEquals(0,remote.mediaWrites)
+            assertTrue(remote.personal.isEmpty());assertEquals(0,ItemMediaStore(db).count())
+            db.openHelper.readableDatabase.query("SELECT count(*) FROM shopping_revoked_media").use { it.moveToFirst();assertEquals(2,it.getInt(0)) }
+        } finally { db.close() }
+    }
 
     @Test fun sharedChangesKeepOwnerIdentityAndDoNotAdvancePersonalCursor() = runBlocking {
         val db = db()

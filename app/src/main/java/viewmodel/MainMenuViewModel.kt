@@ -33,6 +33,15 @@ class MainMenuViewModel(
         _catalogError.value = null
     }
 
+    fun setItemLink(id: Long, url: String, onSaved: () -> Unit) = changeCatalog(onSaved) { repository.setItemLink(id, url) }
+    fun removeItemPhoto(id: Long) = changeCatalog({}) { repository.removeItemPhoto(id) }
+    fun attachItemPhoto(id: Long, uri: Uri, onFinished: () -> Unit = {}) {
+        if (_catalogSaving.value) { onFinished(); return }
+        changeCatalog({}) {
+            try { repository.attachItemPhoto(id, uri) } finally { onFinished() }
+        }
+    }
+
     fun setCatalogLink(id: Long, url: String, onSaved: () -> Unit) = changeCatalog(onSaved) {
         repository.setCatalogLink(id, url)
     }

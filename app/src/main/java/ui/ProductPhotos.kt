@@ -33,7 +33,7 @@ import kotlinx.coroutines.withContext
 class ProductPhotoActions(val camera: (Long) -> Unit, val gallery: (Long) -> Unit)
 
 @Composable
-fun rememberProductPhotoActions(viewModel: MainMenuViewModel): ProductPhotoActions {
+fun rememberProductPhotoActions(viewModel: MainMenuViewModel, listEntry: Boolean = false): ProductPhotoActions {
     val context = LocalContext.current
     val store = remember(context) { ProductPhotoStore(context) }
     var galleryProductId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -42,7 +42,9 @@ fun rememberProductPhotoActions(viewModel: MainMenuViewModel): ProductPhotoActio
     val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         val id = galleryProductId
         galleryProductId = null
-        if (uri != null && id != null) viewModel.attachCatalogPhoto(id, uri)
+        if (uri != null && id != null) {
+            if (listEntry) viewModel.attachItemPhoto(id, uri) else viewModel.attachCatalogPhoto(id, uri)
+        }
     }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         val id = cameraProductId
@@ -51,7 +53,8 @@ fun rememberProductPhotoActions(viewModel: MainMenuViewModel): ProductPhotoActio
         captureName = null
         val file = name?.let { store.cameraFile(it) }
         if (success && id != null && file != null) {
-            viewModel.attachCatalogPhoto(id, Uri.fromFile(file)) { file.delete() }
+            if (listEntry) viewModel.attachItemPhoto(id, Uri.fromFile(file)) { file.delete() }
+            else viewModel.attachCatalogPhoto(id, Uri.fromFile(file)) { file.delete() }
         } else file?.delete()
     }
     return ProductPhotoActions(
@@ -100,7 +103,7 @@ fun ProductPhoto(fileName: String?, title: String, modifier: Modifier = Modifier
 
 @Composable
 fun PhotoMenuOptions(product: CatalogItemEntity, actions: ProductPhotoActions, enabled: Boolean,
-                     onClose: () -> Unit, onView: () -> Unit, onRemove: () -> Unit) {
+                     onClose: () -> Unit, onView: () -> Unit, onRemove: () -> Unit, hasRemotePhoto: Boolean = false) {
     TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
         onClose(); actions.camera(product.id)
     }) { Text(stringResource(R.string.take_photo)) }
@@ -111,6 +114,8 @@ fun PhotoMenuOptions(product: CatalogItemEntity, actions: ProductPhotoActions, e
         TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
             onClose(); onView()
         }) { Text(stringResource(R.string.view_photo)) }
+    }
+    if (product.photoFileName != null || hasRemotePhoto) {
         TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
             onClose(); onRemove()
         }) { Text(stringResource(R.string.remove_photo)) }

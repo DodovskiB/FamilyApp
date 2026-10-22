@@ -95,7 +95,7 @@
     <string name="merge_info">Combine matching lists to keep every product entry, quantity and purchased status. Products are not deduplicated. Or keep this phone\'s lists separate.</string>
     <string name="combine_lists">Combine matching lists</string>
     <string name="keep_separate">Keep lists separate</string>
-    <string name="sync_info">Lists sync while the app is open. Product photos are currently saved on this phone.</string>
+    <string name="sync_info">Lists sync while the app is open. Photos and links attached to list products are shared with that list\'s members. Compressed photos are cached on this phone.</string>
     <string name="sign_out">Sign out</string>
     <string name="first_sign_in">The existing lists on this phone will be associated with the first account you sign in with.</string>
     <string name="continue_google">Continue with Google</string>

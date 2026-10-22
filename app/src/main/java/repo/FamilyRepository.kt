@@ -21,6 +21,10 @@ interface FamilyRepository {
 
     suspend fun removeCatalogPhoto(id: Long)
 
+    suspend fun setItemLink(id: Long, url: String)
+    suspend fun attachItemPhoto(id: Long, uri: Uri)
+    suspend fun removeItemPhoto(id: Long)
+
     suspend fun setCatalogLink(id: Long, url: String)
 
     suspend fun addCatalogItemToList(listId: Long, catalogItemId: Long, purchasedQuantity: Int? = null): Long

@@ -34,7 +34,7 @@ fun ProductLinkMenuOptions(product: CatalogItemEntity, enabled: Boolean,
 }
 
 @Composable
-fun ProductLinkDialog(product: CatalogItemEntity, viewModel: MainMenuViewModel, onDismiss: () -> Unit) {
+fun ProductLinkDialog(product: CatalogItemEntity, viewModel: MainMenuViewModel, listEntry: Boolean = false, onDismiss: () -> Unit) {
     var url by rememberSaveable(product.id) { mutableStateOf(product.linkUrl.orEmpty()) }
     val saving by viewModel.catalogSaving.collectAsState()
     val error by viewModel.catalogError.collectAsState()
@@ -54,14 +54,16 @@ fun ProductLinkDialog(product: CatalogItemEntity, viewModel: MainMenuViewModel, 
                 if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
                 if (product.linkUrl != null) {
                     TextButton(enabled = !saving, onClick = {
-                        viewModel.setCatalogLink(product.id, "", onDismiss)
+                        if (listEntry) viewModel.setItemLink(product.id, "", onDismiss)
+                        else viewModel.setCatalogLink(product.id, "", onDismiss)
                     }) { Text(stringResource(R.string.remove_link)) }
                 }
             }
         },
         confirmButton = {
             TextButton(enabled = !saving && !invalid && (url.isNotBlank() || product.linkUrl != null), onClick = {
-                viewModel.setCatalogLink(product.id, url, onDismiss)
+                if (listEntry) viewModel.setItemLink(product.id, url, onDismiss)
+                else viewModel.setCatalogLink(product.id, url, onDismiss)
             }) { Text(stringResource(R.string.save)) }
         },
         dismissButton = { TextButton(enabled = !saving, onClick = onDismiss) { Text(stringResource(R.string.cancel)) } }
