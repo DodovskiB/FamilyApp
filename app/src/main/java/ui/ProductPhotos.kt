@@ -33,7 +33,7 @@ import kotlinx.coroutines.withContext
 class ProductPhotoActions(val camera: (Long) -> Unit, val gallery: (Long) -> Unit)
 
 @Composable
-fun rememberProductPhotoActions(viewModel: MainMenuViewModel): ProductPhotoActions {
+fun rememberProductPhotoActions(viewModel: MainMenuViewModel, listEntry: Boolean = false): ProductPhotoActions {
     val context = LocalContext.current
     val store = remember(context) { ProductPhotoStore(context) }
     var galleryProductId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -42,7 +42,9 @@ fun rememberProductPhotoActions(viewModel: MainMenuViewModel): ProductPhotoActio
     val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         val id = galleryProductId
         galleryProductId = null
-        if (uri != null && id != null) viewModel.attachCatalogPhoto(id, uri)
+        if (uri != null && id != null) {
+            if (listEntry) viewModel.attachItemPhoto(id, uri) else viewModel.attachCatalogPhoto(id, uri)
+        }
     }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         val id = cameraProductId
@@ -51,7 +53,8 @@ fun rememberProductPhotoActions(viewModel: MainMenuViewModel): ProductPhotoActio
         captureName = null
         val file = name?.let { store.cameraFile(it) }
         if (success && id != null && file != null) {
-            viewModel.attachCatalogPhoto(id, Uri.fromFile(file)) { file.delete() }
+            if (listEntry) viewModel.attachItemPhoto(id, Uri.fromFile(file)) { file.delete() }
+            else viewModel.attachCatalogPhoto(id, Uri.fromFile(file)) { file.delete() }
         } else file?.delete()
     }
     return ProductPhotoActions(

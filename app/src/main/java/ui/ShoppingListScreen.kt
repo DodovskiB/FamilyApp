@@ -27,6 +27,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.example.familyapp.viewmodel.MainMenuViewModel
 import com.example.familyapp.sync.SharingState
+import com.example.familyapp.data.entity.CatalogItemEntity
+import com.example.familyapp.data.entity.ItemEntity
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -169,7 +171,7 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
     var repeatQuantity by rememberSaveable(repeatProduct) { mutableStateOf("1") }
     val photoSaving by viewModel.catalogSaving.collectAsState()
     val photoError by viewModel.catalogError.collectAsState()
-    val photoActions = rememberProductPhotoActions(viewModel)
+    val photoActions = rememberProductPhotoActions(viewModel, listEntry = true)
     var itemActionsId by rememberSaveable(listId) { mutableStateOf<Long?>(null) }
     var viewingPhotoId by rememberSaveable(listId) { mutableStateOf<Long?>(null) }
     var linkingProductId by rememberSaveable(listId) { mutableStateOf<Long?>(null) }
@@ -224,7 +226,7 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                             Checkbox(checked = item.checked, enabled = !saving,
                                 modifier = Modifier.semantics { contentDescription = purchasedDescription },
                                 onCheckedChange = { viewModel.checkItem(item.id, it) })
-                            ProductPhoto(catalog.firstOrNull { it.id == item.catalogItemId }?.photoFileName, item.title)
+                            ProductPhoto(item.photoFileName, item.title)
                             Column(Modifier.weight(1f).padding(top = 8.dp)) {
                                 Text(item.title, style = MaterialTheme.typography.titleMedium,
                                     textDecoration = if (item.checked) TextDecoration.LineThrough else TextDecoration.None)
@@ -366,15 +368,14 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
         AlertDialog(onDismissRequest = { itemActionsId = null }, title = { Text(item.title) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
-                    catalog.firstOrNull { it.id == item.catalogItemId }?.let { product ->
-                        ProductLinkMenuOptions(product, !saving && !photoSaving,
-                            onClose = { itemActionsId = null },
-                            onEdit = { viewModel.clearCatalogError(); linkingProductId = product.id },
-                            onOpenFailure = { viewModel.linkOpenFailed() }, onOpenLink = { uriHandler.openUri(it) })
-                        PhotoMenuOptions(product, photoActions, !saving && !photoSaving,
-                            onClose = { itemActionsId = null }, onView = { viewingPhotoId = product.id },
-                            onRemove = { viewModel.removeCatalogPhoto(product.id) })
-                    }
+                    val product = item.mediaDisplay()
+                    ProductLinkMenuOptions(product, !saving && !photoSaving,
+                        onClose = { itemActionsId = null },
+                        onEdit = { viewModel.clearCatalogError(); linkingProductId = item.id },
+                        onOpenFailure = { viewModel.linkOpenFailed() }, onOpenLink = { uriHandler.openUri(it) })
+                    PhotoMenuOptions(product, photoActions, !saving && !photoSaving,
+                        onClose = { itemActionsId = null }, onView = { viewingPhotoId = item.id },
+                        onRemove = { viewModel.removeItemPhoto(item.id) })
                     TextButton(enabled = !saving, modifier = Modifier.fillMaxWidth(), onClick = {
                         itemActionsId = null
                         removingId = item.id
@@ -383,11 +384,11 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
             },
             confirmButton = { TextButton(onClick = { itemActionsId = null }) { Text(stringResource(R.string.cancel)) } })
     }
-    catalog.firstOrNull { it.id == viewingPhotoId }?.let { product ->
-        ProductPhotoDialog(product) { viewingPhotoId = null }
+    entries.firstOrNull { it.id == viewingPhotoId }?.let { item ->
+        ProductPhotoDialog(item.mediaDisplay()) { viewingPhotoId = null }
     }
-    catalog.firstOrNull { it.id == linkingProductId }?.let { product ->
-        ProductLinkDialog(product, viewModel) { linkingProductId = null }
+    entries.firstOrNull { it.id == linkingProductId }?.let { item ->
+        ProductLinkDialog(item.mediaDisplay(), viewModel, listEntry = true) { linkingProductId = null }
     }
     entries.firstOrNull { it.id == removingId }?.let { item ->
         AlertDialog(
@@ -410,3 +411,6 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
         )
     }
 }
+
+private fun ItemEntity.mediaDisplay() = CatalogItemEntity(id = id, title = title, category = category,
+    photoFileName = photoFileName, linkUrl = linkUrl)

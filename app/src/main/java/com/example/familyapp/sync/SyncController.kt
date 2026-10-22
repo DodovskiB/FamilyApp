@@ -14,7 +14,9 @@ import kotlinx.serialization.json.*
 data class SyncStatus(val message: String = "Connecting…", val pending: Int = 0, val ready: Boolean = false,
                       val needsImportChoice: Boolean = false)
 
-class SyncController(db: AppDatabase, private val remote: SyncTransport) {
+class SyncController(db: AppDatabase, private val remote: SyncTransport,
+                     photos: com.example.familyapp.data.photo.ProductPhotoStore? = null) {
+    private val media = (remote as? ItemMediaTransport)?.let { ItemMediaSynchronizer(db, it, photos) }
     val store = SyncStore(db)
     private val mutableStatus = MutableStateFlow(SyncStatus())
     val status = mutableStatus.asStateFlow()
@@ -94,6 +96,7 @@ class SyncController(db: AppDatabase, private val remote: SyncTransport) {
     /** One cycle is separately testable with isolated databases and transports. */
     suspend fun synchronize(initializeDefaults: suspend () -> Unit = {}) = mutex.withLock {
         store.prepare()
+        media?.store?.prepare()
         // Start durable capture before any network request; user edits during the first
         // download must be queued too, including deletions of freshly downloaded rows.
         store.seed()
@@ -139,7 +142,8 @@ class SyncController(db: AppDatabase, private val remote: SyncTransport) {
         }
         store.apply(download(store.cursor()))
         refreshSharing()
-        val pending = store.pendingCount()
+        media?.synchronize()
+        val pending = store.pendingCount() + (media?.store?.count() ?: 0)
         mutableStatus.value = SyncStatus(if (pending == 0) "Up to date" else "Waiting to sync", pending, true)
     }
 
@@ -150,7 +154,7 @@ class SyncController(db: AppDatabase, private val remote: SyncTransport) {
             try { synchronize(initializeDefaults) }
             catch (error: CancellationException) { throw error }
             catch (_: Exception) {
-                val pending = runCatching { store.pendingCount() }.getOrDefault(0)
+                val pending = runCatching { store.pendingCount() + (media?.store?.count() ?: 0) }.getOrDefault(0)
                 mutableStatus.value = SyncStatus("Waiting for connection — changes stay on this phone", pending)
             }
             delay(5_000)

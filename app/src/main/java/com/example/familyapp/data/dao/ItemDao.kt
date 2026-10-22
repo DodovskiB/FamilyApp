@@ -11,6 +11,21 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ItemDao {
 
+    @Query("SELECT * FROM items WHERE id=:id")
+    suspend fun getById(id: Long): ItemEntity?
+
+    @Query("UPDATE items SET linkUrl=:url WHERE id=:id")
+    suspend fun setLink(id: Long, url: String?)
+
+    @Query("UPDATE items SET photoFileName=:name, photoRemotePath=NULL WHERE id=:id")
+    suspend fun setPhoto(id: Long, name: String?)
+
+    @Query("UPDATE items SET linkUrl=:url WHERE catalogItemId=:catalogId")
+    suspend fun setCatalogLink(catalogId: Long, url: String?)
+
+    @Query("UPDATE items SET photoFileName=:name, photoRemotePath=NULL WHERE catalogItemId=:catalogId")
+    suspend fun setCatalogPhoto(catalogId: Long, name: String?)
+
     @Query("SELECT * FROM items WHERE listId = :listId AND kind = :kind AND isActive = 1 ORDER BY id ASC")
     fun observeByList(listId: Long, kind: Int = 0): Flow<List<ItemEntity>>
 

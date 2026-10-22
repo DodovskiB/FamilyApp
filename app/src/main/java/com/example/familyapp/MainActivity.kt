@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
                 val db = remember(account.databaseName) { AppDatabase.getInstance(applicationContext, account.databaseName) }
                 val setup = if (account.databaseName == "familyapp.db") "familyapp_setup" else "setup_${account.databaseName}"
                 val sync = remember(account.userId, db) {
-                    account.userId?.let { SyncController(db, SupabaseSyncTransport(AccountRepository.getInstance(applicationContext), it)) }
+                    account.userId?.let { SyncController(db, SupabaseSyncTransport(AccountRepository.getInstance(applicationContext), it), ProductPhotoStore(applicationContext)) }
                 }
                 val syncStatus = sync?.status?.collectAsState()?.value
                 val sharing = sync?.sharing?.collectAsState()?.value

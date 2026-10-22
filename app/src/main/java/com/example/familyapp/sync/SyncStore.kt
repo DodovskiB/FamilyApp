@@ -275,6 +275,13 @@ class SyncStore(private val room: AppDatabase) {
         if (exists) db.update(table, android.database.sqlite.SQLiteDatabase.CONFLICT_ABORT, values, "id=?", arrayOf(local))
         else {
             local?.let { values.put("id", it) }
+            if (entity == "item") {
+                values.getAsLong("catalogItemId")?.let { catalog ->
+                    db.query("SELECT linkUrl,photoFileName FROM catalog_items WHERE id=?", arrayOf(catalog)).use {
+                        if (it.moveToFirst()) { values.put("linkUrl", if(it.isNull(0)) null else it.getString(0)); values.put("photoFileName", if(it.isNull(1)) null else it.getString(1)) }
+                    }
+                }
+            }
             local = db.insert(table, android.database.sqlite.SQLiteDatabase.CONFLICT_ABORT, values)
             db.execSQL("INSERT OR REPLACE INTO shopping_sync_map VALUES (?, ?, ?, 1)", arrayOf<Any?>(entity, local, id))
         }

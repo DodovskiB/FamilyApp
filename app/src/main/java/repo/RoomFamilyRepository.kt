@@ -17,12 +17,54 @@ class RoomFamilyRepository(private val db: AppDatabase, private val photos: Prod
     private val itemDao = db.itemDao()
     private val catalogItemDao = db.catalogItemDao()
 
+    private suspend fun deleteUnreferencedPhoto(name: String?) {
+        if (name == null) return
+        val used = db.withTransaction {
+            db.openHelper.readableDatabase.query("SELECT 1 FROM items WHERE photoFileName=? UNION ALL SELECT 1 FROM catalog_items WHERE photoFileName=? LIMIT 1", arrayOf(name, name)).use { it.moveToFirst() }
+        }
+        val queued = db.withTransaction {
+            val sqlite = db.openHelper.readableDatabase
+            sqlite.query("SELECT 1 FROM sqlite_master WHERE type='table' AND name='shopping_media_outbox'").use { tables ->
+                tables.moveToFirst() && sqlite.query("SELECT 1 FROM shopping_media_outbox WHERE photo_file=? UNION ALL SELECT 1 FROM shopping_revoked_media WHERE photo_file=? LIMIT 1", arrayOf(name,name)).use { it.moveToFirst() }
+            }
+        }
+        if (!used && !queued) withContext(Dispatchers.IO) { photos?.delete(name) }
+    }
+
+    override suspend fun setItemLink(id: Long, url: String) = db.withTransaction {
+        requireNotNull(itemDao.getById(id))
+        itemDao.setLink(id, ProductLinks.normalize(url))
+    }
+
+    override suspend fun attachItemPhoto(id: Long, uri: Uri) = withContext(Dispatchers.IO) {
+        val store = checkNotNull(photos)
+        val imported = store.importPhoto(uri)
+        try {
+            val old = db.withTransaction {
+                val item = requireNotNull(itemDao.getById(id))
+                itemDao.setPhoto(id, imported)
+                item.photoFileName
+            }
+            deleteUnreferencedPhoto(old)
+        } catch (error: Exception) { deleteUnreferencedPhoto(imported); throw error }
+    }
+
+    override suspend fun removeItemPhoto(id: Long) {
+        val old = db.withTransaction {
+            val item = requireNotNull(itemDao.getById(id))
+            itemDao.setPhoto(id, null)
+            item.photoFileName
+        }
+        deleteUnreferencedPhoto(old)
+    }
+
     override fun observeCatalogItems(): Flow<List<CatalogItemEntity>> = catalogItemDao.observeAll()
 
     override suspend fun setCatalogLink(id: Long, url: String) = db.withTransaction {
         val normalized = ProductLinks.normalize(url)
         requireNotNull(catalogItemDao.getById(id))
         catalogItemDao.setLink(id, normalized)
+        itemDao.setCatalogLink(id, normalized)
     }
 
     override suspend fun addCatalogItem(title: String, category: String): Long {
@@ -44,7 +86,7 @@ class RoomFamilyRepository(private val db: AppDatabase, private val photos: Prod
             catalogItemDao.deleteById(id)
             old
         }
-        withContext(Dispatchers.IO) { photos?.delete(oldPhoto) }
+        withContext(Dispatchers.IO) { deleteUnreferencedPhoto(oldPhoto) }
     }
 
     override suspend fun attachCatalogPhoto(id: Long, uri: Uri) = withContext(Dispatchers.IO) {
@@ -54,9 +96,10 @@ class RoomFamilyRepository(private val db: AppDatabase, private val photos: Prod
             val oldPhoto = db.withTransaction {
                 val product = requireNotNull(catalogItemDao.getById(id)) { "Product no longer exists" }
                 catalogItemDao.setPhoto(id, imported)
+                itemDao.setCatalogPhoto(id, imported)
                 product.photoFileName
             }
-            store.delete(oldPhoto)
+            deleteUnreferencedPhoto(oldPhoto)
         } catch (error: Exception) {
             store.delete(imported)
             throw error
@@ -67,9 +110,10 @@ class RoomFamilyRepository(private val db: AppDatabase, private val photos: Prod
         val oldPhoto = db.withTransaction {
             val product = requireNotNull(catalogItemDao.getById(id))
             catalogItemDao.setPhoto(id, null)
+            itemDao.setCatalogPhoto(id, null)
             product.photoFileName
         }
-        withContext(Dispatchers.IO) { photos?.delete(oldPhoto) }
+        withContext(Dispatchers.IO) { deleteUnreferencedPhoto(oldPhoto) }
     }
 
     override suspend fun addCatalogItemToList(listId: Long, catalogItemId: Long, purchasedQuantity: Int?): Long =
@@ -86,7 +130,7 @@ class RoomFamilyRepository(private val db: AppDatabase, private val photos: Prod
                 itemDao.setActive(existing.id, false)
                 itemDao.insert(ItemEntity(listId = listId, title = product.title, kind = 0,
                     category = product.category, qty = purchasedQuantity, checked = false,
-                    isActive = true, catalogItemId = product.id))
+                    isActive = true, catalogItemId = product.id, linkUrl = product.linkUrl, photoFileName = product.photoFileName))
             } else if (existing != null) {
                 itemDao.changeQty(existing.id, 1)
                 existing.id
@@ -95,7 +139,7 @@ class RoomFamilyRepository(private val db: AppDatabase, private val photos: Prod
                     ItemEntity(
                         listId = listId, title = product.title, kind = 0,
                         category = product.category, qty = 1, checked = false,
-                        isActive = true, catalogItemId = product.id
+                        isActive = true, catalogItemId = product.id, linkUrl = product.linkUrl, photoFileName = product.photoFileName
                     )
                 )
             }

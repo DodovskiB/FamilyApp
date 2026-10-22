@@ -193,3 +193,11 @@ App/test build и 5 UI tests поминаа; Note 20 ажуриран, ориг�
 - [ ] Користи го новиот 1.1.1-preview APK за новиот телефон.
 - [ ] Провери Google email/OAuth audience, fresh defaults, login и sharing.
 - [ ] Owner push за rename commit: git push origin master.
+
+## ПРВО за следната сесија — shared media WIP
+
+- [ ] Отвори wip/shared-product-media и прочитај docs/SHARED_MEDIA_WIP.md.
+- [ ] Доврши edge cases, isolated tests и SQL rollback authorization tests.
+- [ ] Дури потоа server deploy, live checks и private-backed-up phone update.
+- [ ] Не инсталирај го тековниот WIP код: backend media RPCs уште не се поставени.
+- [ ] Gmail account идејата останува за owner утре; нема billing/нов account.

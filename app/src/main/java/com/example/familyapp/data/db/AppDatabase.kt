@@ -15,7 +15,7 @@ import com.example.familyapp.data.entity.ListEntity
 
 @Database(
     entities = [ListEntity::class, ItemEntity::class, CatalogItemEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -25,6 +25,14 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun catalogItemDao(): CatalogItemDao
 
     companion object {
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE items ADD COLUMN linkUrl TEXT")
+                db.execSQL("ALTER TABLE items ADD COLUMN photoFileName TEXT")
+                db.execSQL("ALTER TABLE items ADD COLUMN photoRemotePath TEXT")
+                db.execSQL("UPDATE items SET linkUrl=(SELECT linkUrl FROM catalog_items WHERE id=items.catalogItemId), photoFileName=(SELECT photoFileName FROM catalog_items WHERE id=items.catalogItemId)")
+            }
+        }
         val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE catalog_items ADD COLUMN linkUrl TEXT")
@@ -66,7 +74,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     databaseName
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build()
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6).build()
                 instances[databaseName] = instance
                 instance
             }
