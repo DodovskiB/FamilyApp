@@ -257,7 +257,7 @@ No new signed 1.3.0 distribution APK exists yet. Read the latest PROJECT_HANDOVE
 - [x] Fix rapid insert/edit shared queue stall; 3 unit + 8 instrumented tests passed.
 - [x] Update both debug phones to version7; exact original-data comparisons passed.
 - [x] Delete temporary A/B lists and entries; Note 20 queue empty.
-- [ ] Final Honor private test-catalog cleanup confirmation (asked in current chat).
+- [x] Final Honor private test-catalog cleanup: owner confirmed completed.
 - [x] Sign tester APK 1.3.1-preview, existing release certificate verified.
 - [ ] Update wife's phone with this signed release APK (not done this session).
 - [ ] Fix Cancel invitation to cancel ALL pending rows in the owner's group atomically.

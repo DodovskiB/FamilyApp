@@ -643,3 +643,18 @@ badge on shared home cards, then saved System/Light/Dark selection. No new featu
 above is implemented yet. Android 12+ dynamic colors are confirmed in Theme.kt.
 Google native-login/branding remains deferred. Owner confirmed GitHub 7ad5e5b before
 this session; no agent push. New local checkpoint/tag before changes protects it.
+
+## Pause checkpoint — stable-2026-10-22
+
+Owner requested a stable saved checkpoint before taking a break. App stays at
+1.3.1-preview / versionCode7, tested code commit b131fde. No further working-code
+changes were made for this pause checkpoint. Owner confirmed removal of the last
+private Honor test-catalog product, so temporary fixture cleanup is complete.
+
+This is a tested preview checkpoint, not a claim that every planned feature is
+complete: grouped pending-invitation cancellation still cancels only one list and
+must be fixed first after the break. Then implement unseen-change badges and
+System/Light/Dark selection. Wife's phone update remains pending. Existing build,
+test, signing and data-preservation results above apply; no redundant rebuild was
+needed for these documentation-only changes. Keep the signed 1.3.1 APK and private
+signing key unchanged. The annotated stable tag records this pause checkpoint.
