@@ -103,7 +103,7 @@ fun ProductPhoto(fileName: String?, title: String, modifier: Modifier = Modifier
 
 @Composable
 fun PhotoMenuOptions(product: CatalogItemEntity, actions: ProductPhotoActions, enabled: Boolean,
-                     onClose: () -> Unit, onView: () -> Unit, onRemove: () -> Unit) {
+                     onClose: () -> Unit, onView: () -> Unit, onRemove: () -> Unit, hasRemotePhoto: Boolean = false) {
     TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
         onClose(); actions.camera(product.id)
     }) { Text(stringResource(R.string.take_photo)) }
@@ -114,6 +114,8 @@ fun PhotoMenuOptions(product: CatalogItemEntity, actions: ProductPhotoActions, e
         TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
             onClose(); onView()
         }) { Text(stringResource(R.string.view_photo)) }
+    }
+    if (product.photoFileName != null || hasRemotePhoto) {
         TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
             onClose(); onRemove()
         }) { Text(stringResource(R.string.remove_photo)) }

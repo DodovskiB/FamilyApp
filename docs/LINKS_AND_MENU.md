@@ -1,5 +1,9 @@
 # Item links and New list menu
 
+> Historical implementation notes. For current per-entry sharing, compression and
+> catalog isolation, see [Shared product media](SHARED_PRODUCT_MEDIA.md). List creation
+> now uses + New list at the upper right of home.
+
 Owner request: 2026-10-20. Local checkpoint: 2b2040a,
 checkpoint/before-item-links-20261020. No push authorized for this change.
 

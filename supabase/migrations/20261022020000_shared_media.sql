@@ -79,7 +79,7 @@ language plpgsql security definer set search_path='' as $$
 declare subject uuid:=auth.uid(); previous_hash text; request_hash text;
 begin
   if subject is null then raise exception 'Authentication required' using errcode='42501'; end if;
-  if owner_id is null or list_id is null or item_id is null or operation_id is null or field_mask not in (1,2,3)
+  if owner_id is null or list_id is null or item_id is null or operation_id is null or field_mask is null or field_mask not in (1,2,3)
     then raise exception 'Invalid media operation'; end if;
   perform pg_advisory_xact_lock(hashtextextended(owner_id::text,0));
   if not exists(select 1 from public.shopping_sync_records l where l.owner_id=shopping_media_apply.owner_id
@@ -87,7 +87,9 @@ begin
     (subject<>owner_id and not exists(select 1 from public.shopping_list_members m where m.owner_id=shopping_media_apply.owner_id
       and m.list_id=shopping_media_apply.list_id and m.member_id=subject))
     then raise exception 'List access removed' using errcode='42501'; end if;
-  request_hash:=md5(jsonb_build_array(list_id,item_id,field_mask,link_url,photo_path)::text);
+  -- List merges can change the route/path prefix between a successful RPC and retry.
+  -- The immutable image digest and item identity still describe the same operation.
+  request_hash:=md5(jsonb_build_array(item_id,field_mask,link_url,regexp_replace(photo_path,'^.*/',''))::text);
   select o.request_hash into previous_hash from public.shopping_media_operations o
     where o.owner_id=shopping_media_apply.owner_id and o.operation_id=shopping_media_apply.operation_id;
   if found then

@@ -375,7 +375,7 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
                         onOpenFailure = { viewModel.linkOpenFailed() }, onOpenLink = { uriHandler.openUri(it) })
                     PhotoMenuOptions(product, photoActions, !saving && !photoSaving,
                         onClose = { itemActionsId = null }, onView = { viewingPhotoId = item.id },
-                        onRemove = { viewModel.removeItemPhoto(item.id) })
+                        onRemove = { viewModel.removeItemPhoto(item.id) }, hasRemotePhoto = item.photoRemotePath != null)
                     TextButton(enabled = !saving, modifier = Modifier.fillMaxWidth(), onClick = {
                         itemActionsId = null
                         removingId = item.id

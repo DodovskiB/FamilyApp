@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.core.app.ActivityOptionsCompat
@@ -22,6 +23,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.example.familyapp.data.db.AppDatabase
 import com.example.familyapp.data.photo.ProductPhotoStore
 import com.example.familyapp.ui.ShoppingItemsScreen
+import com.example.familyapp.ui.ShoppingListScreen
 import com.example.familyapp.viewmodel.MainMenuViewModel
 import com.example.familyapp.viewmodel.MainMenuViewModelFactory
 import kotlinx.coroutines.runBlocking
@@ -45,6 +47,8 @@ class ProductPhotoUiTest {
     private lateinit var fixture: File
     private lateinit var registry: PhotoRegistry
     private var productId = 0L
+    private var entryId = 0L
+    private val listMode = mutableStateOf(false)
 
     private inner class PhotoRegistry : ActivityResultRegistry() {
         var cancelNext = false
@@ -80,6 +84,7 @@ class ProductPhotoUiTest {
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
         val repo = RoomFamilyRepository(db, ProductPhotoStore(context))
         productId = runBlocking { repo.addCatalogItem("Milk", "Dairy") }
+        entryId = runBlocking { repo.addItem(repo.addList("Fixture list",0),"Shared entry",0) }
         fixture = File.createTempFile("gallery-fixture-", ".jpg", context.cacheDir)
         val image = Bitmap.createBitmap(320, 240, Bitmap.Config.ARGB_8888)
         fixture.outputStream().use { image.compress(Bitmap.CompressFormat.JPEG, 90, it) }
@@ -89,7 +94,10 @@ class ProductPhotoUiTest {
         vm = ViewModelProvider(store, MainMenuViewModelFactory(repo))[MainMenuViewModel::class.java]
         compose.setContent {
             CompositionLocalProvider(LocalActivityResultRegistryOwner provides owner) {
-                MaterialTheme { ShoppingItemsScreen(vm, onBack = {}) }
+                MaterialTheme {
+                    if (listMode.value) ShoppingListScreen(vm,onOpenMenu={})
+                    else ShoppingItemsScreen(vm, onBack = {})
+                }
             }
         }
         compose.waitUntil(5_000) { vm.catalogItems.value.isNotEmpty() }
@@ -98,8 +106,10 @@ class ProductPhotoUiTest {
     @After
     fun cleanup() {
         val photo = runBlocking { db.catalogItemDao().getById(productId)?.photoFileName }
+        val entryPhoto = runBlocking { db.itemDao().getById(entryId)?.photoFileName }
         compose.runOnIdle { store.clear() }
         ProductPhotoStore(context).delete(photo)
+        ProductPhotoStore(context).delete(entryPhoto)
         db.close()
         fixture.delete()
     }
@@ -107,6 +117,30 @@ class ProductPhotoUiTest {
     private fun choose(action: String) {
         compose.onNodeWithText("Milk", substring = false).performTouchInput { longClick() }
         compose.onNodeWithText(action, substring = false).performClick()
+    }
+
+    @Test fun unlinkedSharedEntryActionsDoNotModifyPrivateCatalog() {
+        runBlocking { db.itemDao().update(db.itemDao().getById(entryId)!!.copy(photoRemotePath="pending-download.jpg")) }
+        compose.runOnIdle { listMode.value=true }
+        compose.waitUntil(5_000) { vm.lists.value.isNotEmpty() }
+        compose.onNodeWithText("Fixture list",substring=false).performClick()
+        fun action(text:String) {
+            compose.onNodeWithText("Shared entry",substring=false).performTouchInput { longClick() }
+            compose.onNodeWithText(text,substring=false).performClick()
+        }
+        action("Remove photo")
+        compose.waitUntil(5_000) { runBlocking { db.itemDao().getById(entryId)!!.photoRemotePath }==null && !vm.catalogSaving.value }
+        action("Take photo")
+        compose.waitUntil(5_000) { runBlocking { db.itemDao().getById(entryId)!!.photoFileName }!=null && !vm.catalogSaving.value }
+        val cameraPhoto=runBlocking { db.itemDao().getById(entryId)!!.photoFileName!! }
+        assertEquals(1,registry.cameraCalls)
+        action("Choose from gallery")
+        compose.waitUntil(5_000) { runBlocking { db.itemDao().getById(entryId)!!.photoFileName }.let { it!=null && it!=cameraPhoto } && !vm.catalogSaving.value }
+        assertEquals(1,registry.galleryCalls)
+        assertNull(runBlocking { db.catalogItemDao().getById(productId)!!.photoFileName })
+        action("Remove photo")
+        compose.waitUntil(5_000) { runBlocking { db.itemDao().getById(entryId)!!.photoFileName }==null && !vm.catalogSaving.value }
+        assertNull(runBlocking { db.catalogItemDao().getById(productId)!!.photoFileName })
     }
 
     @Test

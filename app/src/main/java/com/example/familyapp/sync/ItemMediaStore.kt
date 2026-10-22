@@ -33,13 +33,16 @@ class ItemMediaStore(private val room: AppDatabase) {
                 fun text(name: String): String? = c.getColumnIndexOrThrow(name).let { if(c.isNull(it)) null else c.getString(it) }
                 val remote = cloud[text("remote_id")] ?: continue
                 val id = c.getLong(c.getColumnIndexOrThrow("id"))
-                val pending = db.query("SELECT 1 FROM shopping_media_outbox WHERE item_id=?", arrayOf(id)).use { it.moveToFirst() }
-                if (!remote.getValue("has_media").jsonPrimitive.boolean && !pending &&
-                    listOf("linkUrl","photoFileName","photoRemotePath").any { text(it) != null }) {
-                    db.execSQL("INSERT INTO shopping_media_outbox(operation_id,item_id,mask,link_url,photo_file,photo_path) VALUES(?,?,3,?,?,?)",
-                        arrayOf(UUID.randomUUID().toString(), id, text("linkUrl"), text("photoFileName"), text("photoRemotePath")))
+                val pendingMask = db.query("SELECT mask FROM shopping_media_outbox WHERE item_id=?", arrayOf<Any?>(id)).use { cursor ->
+                    var mask = 0; while (cursor.moveToNext()) mask = mask or cursor.getInt(0); mask
                 }
-                db.execSQL("INSERT OR IGNORE INTO shopping_media_seen VALUES(?)", arrayOf(id))
+                if (!remote.getValue("has_media").jsonPrimitive.boolean) {
+                    val photoMask = if ((text("photoFileName") != null || text("photoRemotePath") != null) && pendingMask and 1 == 0) 1 else 0
+                    val linkMask = if (text("linkUrl") != null && pendingMask and 2 == 0) 2 else 0
+                    if (photoMask or linkMask != 0) db.execSQL("INSERT INTO shopping_media_outbox(operation_id,item_id,mask,link_url,photo_file,photo_path) VALUES(?,?,?,?,?,?)",
+                        arrayOf<Any?>(UUID.randomUUID().toString(), id, photoMask or linkMask, text("linkUrl"), text("photoFileName"), text("photoRemotePath")))
+                }
+                db.execSQL("INSERT OR IGNORE INTO shopping_media_seen VALUES(?)", arrayOf<Any?>(id))
             }
         }
     }
@@ -58,27 +61,46 @@ class ItemMediaStore(private val room: AppDatabase) {
     }
 
     suspend fun acknowledge(change: MediaChange, path: String?) = tx { db ->
-        db.execSQL("DELETE FROM shopping_media_outbox WHERE operation_id=?", arrayOf(change.operationId))
+        db.execSQL("DELETE FROM shopping_media_outbox WHERE operation_id=?", arrayOf<Any?>(change.operationId))
         // Do not attach a stale upload to an image edited/replaced while that request was running.
         if (change.mask and 1 != 0) applying(db) {
             db.execSQL("UPDATE items SET photoRemotePath=? WHERE id=? AND photoFileName IS ? AND photoRemotePath IS ?",
-                arrayOf(path, change.localId, change.photoFile, change.photoPath))
+                arrayOf<Any?>(path, change.localId, change.photoFile, change.photoPath))
         }
     }
 
-    suspend fun apply(snapshot: JsonArray) = tx { db -> applying(db) {
+    suspend fun apply(snapshot: JsonArray): List<String> = tx { db ->
+        val released = mutableListOf<String>()
+        applying(db) {
         snapshot.forEach { value ->
             val row = value.jsonObject
             val remote = row.getValue("id").jsonPrimitive.content
             fun text(key: String) = row[key]?.jsonPrimitive?.contentOrNull
-            val id = db.query("SELECT local_id FROM shopping_sync_map WHERE entity='item' AND remote_id=?", arrayOf(remote)).use { if(it.moveToFirst()) it.getLong(0) else null } ?: return@forEach
+            val id = db.query("SELECT local_id FROM shopping_sync_map WHERE entity='item' AND remote_id=?", arrayOf<Any?>(remote)).use { if(it.moveToFirst()) it.getLong(0) else null } ?: return@forEach
             // Pending fields win locally until their own server operation has been acknowledged.
-            val mask = db.query("SELECT mask FROM shopping_media_outbox WHERE item_id=?", arrayOf(id)).use { c -> var m=0; while(c.moveToNext()) m=m or c.getInt(0); m }
-            if (mask and 2 == 0) db.execSQL("UPDATE items SET linkUrl=? WHERE id=?", arrayOf(text("link_url"),id))
-            if (mask and 1 == 0) db.execSQL("""UPDATE items SET photoFileName=CASE WHEN photoRemotePath IS ? THEN photoFileName ELSE NULL END,
-                photoRemotePath=? WHERE id=?""", arrayOf(text("photo_path"), text("photo_path"),id))
+            val mask = db.query("SELECT mask FROM shopping_media_outbox WHERE item_id=?", arrayOf<Any?>(id)).use { c -> var m=0; while(c.moveToNext()) m=m or c.getInt(0); m }
+            if (mask and 2 == 0) db.execSQL("UPDATE items SET linkUrl=? WHERE id=?", arrayOf<Any?>(text("link_url"),id))
+            if (mask and 1 == 0) {
+                db.query("SELECT photoFileName,photoRemotePath FROM items WHERE id=?", arrayOf<Any?>(id)).use {
+                    if (it.moveToFirst() && !it.isNull(0) && (text("photo_path") == null || it.getString(1) != text("photo_path"))) released.add(it.getString(0))
+                }
+                db.execSQL("""UPDATE items SET photoFileName=CASE WHEN ? IS NOT NULL AND photoRemotePath IS ? THEN photoFileName ELSE NULL END,
+                    photoRemotePath=? WHERE id=?""", arrayOf<Any?>(text("photo_path"), text("photo_path"), text("photo_path"),id))
+            }
         }
+        }
+        released
+    }
+
+    suspend fun invalidateMissingFile(id: Long, path: String, name: String) = tx { db -> applying(db) {
+        db.execSQL("UPDATE items SET photoFileName=NULL WHERE id=? AND photoRemotePath=? AND photoFileName=?", arrayOf<Any?>(id,path,name))
     } }
+
+    suspend fun localPhotos(): List<Triple<Long,String,String>> = tx { db ->
+        db.query("SELECT id,photoRemotePath,photoFileName FROM items WHERE photoRemotePath IS NOT NULL AND photoFileName IS NOT NULL AND isActive=1").use { c ->
+            buildList { while(c.moveToNext()) add(Triple(c.getLong(0),c.getString(1),c.getString(2))) }
+        }
+    }
 
     suspend fun missingPhotos(): List<Pair<Long,String>> = tx { db ->
         db.query("SELECT id,photoRemotePath FROM items WHERE photoRemotePath IS NOT NULL AND photoFileName IS NULL AND isActive=1").use { c ->
@@ -87,13 +109,13 @@ class ItemMediaStore(private val room: AppDatabase) {
     }
 
     suspend fun cachePhoto(id: Long, path: String, name: String) = tx { db -> applying(db) {
-        db.execSQL("UPDATE items SET photoFileName=? WHERE id=? AND photoRemotePath=? AND photoFileName IS NULL", arrayOf(name,id,path))
+        db.execSQL("UPDATE items SET photoFileName=? WHERE id=? AND photoRemotePath=? AND photoFileName IS NULL", arrayOf<Any?>(name,id,path))
     } }
 
     suspend fun referencedPhoto(name: String): Boolean = tx { db ->
         db.query("""SELECT 1 FROM items WHERE photoFileName=? UNION ALL SELECT 1 FROM catalog_items WHERE photoFileName=?
             UNION ALL SELECT 1 FROM shopping_media_outbox WHERE photo_file=? UNION ALL SELECT 1 FROM shopping_revoked_media WHERE photo_file=? LIMIT 1""",
-            arrayOf(name,name,name,name)).use { it.moveToFirst() }
+            arrayOf<Any?>(name,name,name,name)).use { it.moveToFirst() }
     }
 
     suspend fun count(): Int = tx { db -> db.query("SELECT count(*) FROM shopping_media_outbox WHERE item_id IN (SELECT id FROM items)").use { it.moveToFirst();it.getInt(0) } }

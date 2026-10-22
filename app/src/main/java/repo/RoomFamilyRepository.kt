@@ -130,7 +130,8 @@ class RoomFamilyRepository(private val db: AppDatabase, private val photos: Prod
                 itemDao.setActive(existing.id, false)
                 itemDao.insert(ItemEntity(listId = listId, title = product.title, kind = 0,
                     category = product.category, qty = purchasedQuantity, checked = false,
-                    isActive = true, catalogItemId = product.id, linkUrl = product.linkUrl, photoFileName = product.photoFileName))
+                    isActive = true, catalogItemId = product.id, linkUrl = existing.linkUrl,
+                    photoFileName = existing.photoFileName, photoRemotePath = existing.photoRemotePath))
             } else if (existing != null) {
                 itemDao.changeQty(existing.id, 1)
                 existing.id
@@ -197,9 +198,10 @@ class RoomFamilyRepository(private val db: AppDatabase, private val photos: Prod
         )
     }
 
-    override suspend fun updateItem(item: ItemEntity) {
+    override suspend fun updateItem(item: ItemEntity) = db.withTransaction {
         require(item.qty >= 1 && item.title.isNotBlank())
-        itemDao.update(item)
+        val current = requireNotNull(itemDao.getById(item.id))
+        itemDao.update(item.copy(linkUrl = current.linkUrl, photoFileName = current.photoFileName, photoRemotePath = current.photoRemotePath))
     }
 
     override suspend fun setQty(id: Long, qty: Int) {

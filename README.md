@@ -3,7 +3,7 @@
 An Android shopping-list app built with Kotlin, Jetpack Compose and Room.
 
 - Multiple shopping lists with quantities and purchased status.
-- Reusable product catalog with optional local photos and product links.
+- Reusable private product catalog with optional photos and product links.
 - Google sign-in and synchronization between devices using the same account.
 - List-specific Owner/Admin access with in-app email-addressed invitations.
 - Purchased section, confirmed Clear purchased and Buy again with a new quantity.
@@ -11,7 +11,9 @@ An Android shopping-list app built with Kotlin, Jetpack Compose and Room.
 
 Sharing is a private pilot; see [permissions and verification](docs/LIST_SHARING.md).
 See [purchased workflow](docs/PURCHASED_WORKFLOW.md) for current behavior.
-Photos currently stay on the phone. Automatic invitation emails are not enabled.
+Photos and links on list entries sync with current list members; see
+[shared product media](docs/SHARED_PRODUCT_MEDIA.md) for compression, storage and checks.
+Automatic invitation emails are not enabled.
 
 ## Development
 

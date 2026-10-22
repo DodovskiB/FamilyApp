@@ -86,14 +86,16 @@ class ProductLinkUiTest {
         compose.onNodeWithText("Edit link", substring = false).performClick()
         compose.onNodeWithText("Product link").performTextReplacement("https://www.ebay.com/itm/example")
         compose.onNodeWithText("Save", substring = false).performClick()
-        compose.waitUntil(5_000) { vm.catalogItems.value.single().linkUrl == "https://www.ebay.com/itm/example" && !vm.catalogSaving.value }
+        compose.waitUntil(5_000) { runBlocking { db.itemDao().getByList(1).single().linkUrl } == "https://www.ebay.com/itm/example" && !vm.catalogSaving.value }
+        compose.runOnIdle { assertEquals("https://www.amazon.com/dp/example", vm.catalogItems.value.single().linkUrl) }
         holdMilk()
         compose.onNodeWithText("Open link", substring = false).performClick()
         compose.runOnIdle { assertEquals("https://www.ebay.com/itm/example", opened) }
         holdMilk()
         compose.onNodeWithText("Edit link", substring = false).performClick()
         compose.onNodeWithText("Remove link", substring = false).performClick()
-        compose.waitUntil(5_000) { vm.catalogItems.value.single().linkUrl == null && !vm.catalogSaving.value }
+        compose.waitUntil(5_000) { runBlocking { db.itemDao().getByList(1).single().linkUrl } == null && !vm.catalogSaving.value }
+        compose.runOnIdle { assertEquals("https://www.amazon.com/dp/example", vm.catalogItems.value.single().linkUrl) }
         holdMilk()
         compose.onNodeWithText("Open link", substring = false).assertDoesNotExist()
         compose.onNodeWithText("Add link", substring = false).assertIsDisplayed()

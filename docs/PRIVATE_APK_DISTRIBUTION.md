@@ -46,7 +46,8 @@ Local lists can be used without sign-in. Google sign-in plus list invitations ar
 needed for shared lists. Play/APK install permission does not grant list access.
 If Google OAuth is still in Testing, add each tester's Google email to its audience
 before testing sign-in. Do not promise unrestricted login until checked with a new
-allowed tester. Current photos/links and personal catalog are not cloud-shared.
+allowed tester. List-entry photos and links are shared with that list's current members in
+1.2.0-preview/4. The personal catalog remains private. See SHARED_PRODUCT_MEDIA.md.
 
 ## Catalog name (approved 2026-10-22)
 
@@ -54,4 +55,3 @@ The owner chose `Product catalog` for both drawer and screen title (MK: Ката
 catalog initially empty. Persistence enables prefix suggestions, reusable products,
 photos and links. Potential later features: barcode lookup, favorites, frequently
 bought products and price history. None is added by this packaging work.
-'''

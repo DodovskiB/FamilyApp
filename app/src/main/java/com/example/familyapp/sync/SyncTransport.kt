@@ -91,7 +91,7 @@ class SupabaseSyncTransport(private val accounts: AccountRepository, private val
         }
         // Immutable, content-addressed object. A retry of the same bytes may already exist.
         check(response.status.isSuccess() || response.status.value == 409 ||
-            (response.status.value == 400 && response.bodyAsText().contains("Duplicate"))) { "Photo upload failed" }
+            (response.status.value == 400 && response.bodyAsText().let { it.contains("Duplicate") || it.contains("already exists") })) { "Photo upload failed" }
     }
 
     override suspend fun downloadPhoto(path: String): ByteArray {
