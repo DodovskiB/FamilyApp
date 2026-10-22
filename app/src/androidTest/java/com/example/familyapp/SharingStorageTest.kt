@@ -64,6 +64,15 @@ class SharingStorageTest {
         }
         override suspend fun applyShared(owner: String, list: String, operations: JsonArray) {
             assertEquals(ownerId, owner); assertEquals(listId, list)
+            // Match server prevalidation: an update cannot refer to an entry whose
+            // insert has not committed in an earlier request.
+            val existing = shared.filter { it["action"]?.jsonPrimitive?.content == "insert" }
+                .map { it.getValue("id").jsonPrimitive.content }.toSet() + itemId
+            operations.forEach {
+                val op = it.jsonObject
+                if (op.getValue("action").jsonPrimitive.content != "insert")
+                    check(op.getValue("id").jsonPrimitive.content in existing) { "Entry not committed" }
+            }
             shared.addAll(operations.map { it.jsonObject })
         }
         override suspend fun invite(list: String, email: String) = Unit
@@ -71,6 +80,26 @@ class SharingStorageTest {
         override suspend fun remove(list: String, member: String?, invitation: String?) = Unit
     }
     private fun db() = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+
+    @Test fun newSharedEntryCommitsBeforeItsQueuedEdits() = runBlocking {
+        val db = db()
+        try {
+            val remote = Transport()
+            val sync = SyncController(db, remote)
+            sync.synchronize()
+            val repo = RoomFamilyRepository(db)
+            val list = repo.getLists().single()
+            val product = repo.addCatalogItem("Rapid fixture", "Other")
+            repo.addCatalogItemToList(list.id, product)
+            val entry = repo.getItems(list.id, 0).single { it.title == "Rapid fixture" }
+            repo.changeQty(entry.id, 1)
+            repo.toggleChecked(entry.id, true)
+            sync.synchronize()
+            assertEquals(listOf("insert", "update", "update"), remote.shared.map { it.getValue("action").jsonPrimitive.content })
+            assertEquals(0, sync.store.pendingCount())
+            assertEquals("catalog", remote.personal.single().getValue("entity").jsonPrimitive.content)
+        } finally { db.close() }
+    }
 
     @Test fun revokedMediaIsArchivedAndNeverUploadedUnderPersonalOwnership() = runBlocking {
         val db=db()

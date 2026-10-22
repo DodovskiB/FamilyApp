@@ -1,6 +1,6 @@
 # Shopping List App — чек-листа за продолжување
 
-> Актуелно: 1.2.1-preview/5, shared photos/links се завршени и проверени.
+> Актуелно: 1.3.1-preview/7; види ја последната секција за групни покани и проверки.
 > Следи ја последната секција; старите чекори/WIP предупредувања се историски.
 
 Подготвено: 21 октомври 2026. За следната сесија: 22 октомври 2026.
@@ -248,3 +248,22 @@ App/test build и 5 UI tests поминаа; Note 20 ажуриран, ориг�
 - [ ] Google native login/branding is deferred; do not mix it into this checkpoint.
 
 No new signed 1.3.0 distribution APK exists yet. Read the latest PROJECT_HANDOVER.md section before continuing. Stopped safely due to 5% remaining usage.
+
+## Current next steps — verified 2026-10-22, 1.3.1-preview / 7
+
+- [x] Grouped physical acceptance on Note 20/Honor, one card/one Accept/two lists.
+- [x] Add/edit products on both shared lists and verify results on owner phone.
+- [x] Per-list revocation: A removed, B retained and still editable (4/purchased).
+- [x] Fix rapid insert/edit shared queue stall; 3 unit + 8 instrumented tests passed.
+- [x] Update both debug phones to version7; exact original-data comparisons passed.
+- [x] Delete temporary A/B lists and entries; Note 20 queue empty.
+- [ ] Final Honor private test-catalog cleanup confirmation (asked in current chat).
+- [x] Sign tester APK 1.3.1-preview, existing release certificate verified.
+- [ ] Update wife's phone with this signed release APK (not done this session).
+- [ ] Fix Cancel invitation to cancel ALL pending rows in the owner's group atomically.
+- [ ] Add per-list badge for unseen changes by other people; clear on opening.
+- [ ] Add saved System / Light / Dark drawer option, System default.
+- [ ] Google native-login/branding is deferred.
+
+Do not claim grouped Cancel/badges/theme finished: they are planned follow-ups.
+Always provide git push origin master on saving; owner performs push.

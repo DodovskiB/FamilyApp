@@ -229,3 +229,14 @@ EN and stored/cloud names remain unchanged; custom names are preserved.
 Order list-entry and catalog actions: available View photo, available Open link,
 Take photo, Choose from gallery, Add/Edit link, optional Remove photo, then existing
 item edit/removal/deletion. Both photo and link -> photo first, link second.
+
+## Owner follow-ups — 2026-10-22
+
+Finish the interrupted grouped-invitation physical acceptance first (owner clarified
+this ordering). Then: (1) cancel every pending row in a grouped invitation together,
+keeping accepted-member revocation per list; (2) home-card unseen-change badge for
+other members' changes, cleared when opened, excluding own changes and changes
+while the list is visibly open; (3) persistent device-local System / Light / Dark
+choice in the drawer, System default. Existing theme uses system darkness and
+Android 12+ dynamic colors; preserve dynamic colors unless separately requested.
+No OS push notification service is requested for the home-card badge.

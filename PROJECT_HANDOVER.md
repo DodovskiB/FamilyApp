@@ -1,7 +1,7 @@
 # Shopping List App — продолжување од друг разговор или компјутер
 
-> Најново: shared photos/links се довршени; најнова UI верзија 1.2.1-preview/5 на
-> 22 октомври 2026. Прочитај ја последната секција и docs/SHARED_PRODUCT_MEDIA.md.
+> Најново: 1.3.1-preview/7, групни покани и поправка за брзи измени на нов shared
+> производ. Прочитај ја последната секција и docs/GROUPED_INVITATIONS.md.
 > Постарите WIP предупредувања подолу се историски.
 
 Последно ажурирање: **21 октомври 2026**, Europe/Skopje.
@@ -606,3 +606,40 @@ Verification: debug/release/test APK builds succeeded; 3 unit tests and 8 direct
 Next session: update Note 20 preserving data, invite Honor's second account to two temporary lists, verify one invitation/one acceptance and both lists editable, verify an unselected list stays private and per-list revocation, then clean up only temporary fixtures. Finish device updates and package the tester APK after acceptance. Google login branding remains deferred.
 
 Safety baseline: remote master was bdc1f34; local tag checkpoint-before-batch-invitations-2026-10-22 protects it. Private Honor data backup and original APK are outside Git in workspace/work/honor-before-batch-20261022-134119.*. Preserve unrelated .idea files. Do not uninstall phones or push without approval. Always provide the push command when saving. Session ended early because only 5% usage remained.
+
+## Latest verified checkpoint — 2026-10-22: 1.3.1-preview / 7
+
+Resumed interrupted grouped-invitation acceptance, as clarified by owner. Two temporary
+lists selected on Note 20 produced ONE incoming card on Honor's second account; ONE
+Accept granted both. Honor added products to both and changed quantities/checks.
+Note 20 verified A=2/purchased and B=3/not purchased. Revoking A removed its access
+while B stayed editable: owner confirmed Honor's later B=4/purchased. Owner reported
+this on Honor and the Note 20 UI independently confirmed the synchronized change.
+
+This test exposed an existing shared-upload stall when a new insert and later edits
+were sent in the same request. SyncController now commits inserted shared identities
+before subsequent edits of those identities; other operations still batch. Regression
+added with server-style committed-row validation. No SQL/backend/Room changes in
+this follow-up. Read docs/GROUPED_INVITATIONS.md.
+
+Verified: Android Studio Gradle debug/release/test builds and 3 unit tests passed;
+direct Honor SharingStorageTest + SharingUiTest = 8 passed. Both Note 20 and Honor
+are update-installed DEBUG 1.3.1-preview/7, no uninstall. Honor's 3 queued operations
+drained to zero; exact private pre/post original list/item/catalog comparison passed.
+After deleting only temporary A/B lists, Note 20's exact original-data comparison
+also passed and its queue was empty. Honor was asked to remove only the temporary
+Batch proof product from its private catalog; final user confirmation is noted next.
+Private backups remain outside Git in workspace/work (before/after-grouped Note 20
+and before/after-rapid-fix Honor). Do not publish those backups.
+
+Signed tester artifact in workspace: Shopping-List-App-1.3.1-preview.apk, versionCode7,
+v2/v3 signatures verified, same release certificate as 1.2.1. SHA256:
+1734E393251079476B570833FB10156FCB694DCB994E2B6AFF889950134600BE.
+Wife's phone has NOT been updated in this session; use the release APK to update
+its existing release-signed installation. Personal Note 20/Honor remain debug-signed.
+
+Next work: fix grouped Cancel (still per-list; known owner report), then unseen-change
+badge on shared home cards, then saved System/Light/Dark selection. No new feature
+above is implemented yet. Android 12+ dynamic colors are confirmed in Theme.kt.
+Google native-login/branding remains deferred. Owner confirmed GitHub 7ad5e5b before
+this session; no agent push. New local checkpoint/tag before changes protects it.

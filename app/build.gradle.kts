@@ -33,8 +33,8 @@ android {
         applicationId = "com.example.familyapp"
         minSdk = 24
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.3.0-preview"
+        versionCode = 7
+        versionName = "1.3.1-preview"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "SUPABASE_URL", configString("supabase.url"))

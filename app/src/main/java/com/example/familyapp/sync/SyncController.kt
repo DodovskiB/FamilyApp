@@ -144,9 +144,15 @@ class SyncController(db: AppDatabase, private val remote: SyncTransport,
             // Preserve ordering; acknowledge each group only after its own server transaction succeeds.
             val firstList = store.sharedListFor(changes.first())
             val batch = mutableListOf<QueuedChange>()
+            val inserted = mutableSetOf<String>()
             for (change in changes) {
                 if (store.sharedListFor(change) != firstList) break
+                val id = change.json.getValue("id").jsonPrimitive.content
+                // Shared RPC validation reads the persisted rows before applying the batch.
+                // Commit a new entry before sending later edits/deletion of that entry.
+                if (firstList != null && id in inserted) break
                 batch.add(change)
+                if (change.json.getValue("action").jsonPrimitive.content == "insert") inserted.add(id)
             }
             try {
                 if (firstList == null) remote.apply(JsonArray(batch.map { it.json }))
