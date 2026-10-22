@@ -482,3 +482,15 @@ Account останува најавен и покажува Up to date. Пред
 оригинални list/item/catalog полиња непроменети, 0 pending. Honor останува со
 претходната EN/MK debug верзија; новиот release APK за сопругата е одделен,
 со release key како што е документирано. Нема промени на код или нови features.
+
+## Resume shared media WIP — 22 октомври 2026
+
+Owner побара да застанеме поради мал преостанат usage ако не сме при крај. Новото
+споделување на слики/линкови НЕ е готово. Локалната започната работа е commit c1528da
+на посебна гранка wip/shared-product-media. За продолжување: git switch
+wip/shared-product-media, па прочитај docs/SHARED_MEDIA_WIP.md со дизајнот и познатите
+недовршени случаи. Само compileDebugKotlin е поминат; backend миграцијата не е
+применета, нема нов bucket, нема media тестови или нов APK install. Не инсталирај WIP.
+Checkout е вратен на master со стабилниот код за Android Studio/телефоните. Последен
+потврден GitHub push е d19ca1a; поновите checkpoints чекаат owner push. Gmail account
+е само owner идеја за утре, не е создаден/поврзан сервис и нема billing промени.
