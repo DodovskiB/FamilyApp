@@ -1,6 +1,6 @@
 # Shopping List App — чек-листа за продолжување
 
-> Актуелно: 1.2.0-preview/4, shared photos/links се завршени и проверени.
+> Актуелно: 1.2.1-preview/5, shared photos/links се завршени и проверени.
 > Следи ја последната секција; старите чекори/WIP предупредувања се историски.
 
 Подготвено: 21 октомври 2026. За следната сесија: 22 октомври 2026.
@@ -222,3 +222,15 @@ App/test build и 5 UI tests поминаа; Note 20 ажуриран, ориг�
 - [ ] Дневна проба: items, фотографии/линкови, offline edits, purchased/Buy again/Clear purchased.
 - [ ] Owner: офлајн backup на постојниот private release-signing folder.
 - [ ] Потоа договор за дизајн или следна функција. Automatic updater не е имплементиран.
+
+## Најнови UI корекции — 1.2.1-preview/5
+
+- [x] Owner push ef7d598 е потврден.
+- [x] MK defaults: Дома / Викендица / Одмор; EN/stored/custom names зачувани.
+- [x] View photo, Open link, камера, галерија, Add/Edit link, потоа remove акции.
+- [x] Debug/release build, 3 unit + 4 UI checks и реални MK labels на двата телефона.
+- [x] Note 20 и Honor ажурирани без uninstall; Honor data comparison непроменет.
+- [x] Release APK 1.2.1-preview/5, истиот signing key, signature/version проверени.
+- [ ] Owner push на новата UI верзија: git push origin master.
+- [ ] За нови тестери користи Shopping-List-App-1.2.1-preview.apk.
+- [ ] Следно: секојдневна shopping проба и нов tester login/sharing, па дизајн по договор.

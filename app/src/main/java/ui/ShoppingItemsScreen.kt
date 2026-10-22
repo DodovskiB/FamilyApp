@@ -140,8 +140,10 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
             title = { Text(product.title) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
-                    ProductLinkMenuOptions(product, !saving,
-                        onClose = { actionsId = null }, onEdit = { viewModel.clearCatalogError(); linkingProductId = product.id },
+                    ProductMediaMenuOptions(product, photoActions, !saving,
+                        onClose = { actionsId = null }, onView = { viewingPhotoId = product.id },
+                        onRemove = { viewModel.removeCatalogPhoto(product.id) },
+                        onEditLink = { viewModel.clearCatalogError(); linkingProductId = product.id },
                         onOpenFailure = { viewModel.linkOpenFailed() }, onOpenLink = { uriHandler.openUri(it) })
                     TextButton(enabled = !saving, modifier = Modifier.fillMaxWidth(), onClick = {
                         actionsId = null
@@ -151,9 +153,6 @@ fun ShoppingItemsScreen(viewModel: MainMenuViewModel, onBack: () -> Unit) {
                         viewModel.clearCatalogError()
                         editorOpen = true
                     }) { Text(stringResource(R.string.edit)) }
-                    PhotoMenuOptions(product, photoActions, !saving, onClose = { actionsId = null },
-                        onView = { viewingPhotoId = product.id },
-                        onRemove = { viewModel.removeCatalogPhoto(product.id) })
                     TextButton(enabled = !saving, modifier = Modifier.fillMaxWidth(), onClick = {
                         actionsId = null
                         viewModel.clearCatalogError()

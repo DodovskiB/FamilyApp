@@ -133,4 +133,7 @@
     <string name="message_15">Access to a shared list ended. Its offline changes were kept privately and were not uploaded.</string>
     <string name="message_16">Invitation added. They can accept it in Invitations using this Google email. No email was sent.</string>
     <string name="message_17">Could not complete this action. Check your connection, email and list access, then try again.</string>
+    <string name="default_list_home">Home</string>
+    <string name="default_list_weekend">Weekend House</string>
+    <string name="default_list_vacation">Vacation</string>
 </resources>

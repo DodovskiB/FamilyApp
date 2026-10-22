@@ -221,3 +221,11 @@ permissions, durable offline field queues, Room v6 migration and long-press acti
 Private catalog edits and list-entry edits remain separate. See
 docs/SHARED_PRODUCT_MEDIA.md for verified results and remaining device acceptance.
 No new backend service, paid quota, public APK upload or automatic updater.
+
+## MK default labels and media menu order — owner approved 2026-10-22
+
+Localize the three standard list display names only in MK: Дома, Викендица, Одмор.
+EN and stored/cloud names remain unchanged; custom names are preserved.
+Order list-entry and catalog actions: available View photo, available Open link,
+Take photo, Choose from gallery, Add/Edit link, optional Remove photo, then existing
+item edit/removal/deletion. Both photo and link -> photo first, link second.

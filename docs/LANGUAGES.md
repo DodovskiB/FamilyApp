@@ -17,8 +17,12 @@ ViewModel/account/sync messages are localized only at the presentation boundary
 in LocalizedMessage.kt. Unknown messages are left unchanged. Future app-owned
 status messages must add a mapping and EN/MK resources; never translate user data.
 
-User-entered list/product/category names, existing default list names, emails,
-links, stored category Other and the Shopping List App brand are retained.
+Stored list/product/category names, emails, links, category Other and the Shopping
+List App brand are retained. Owner update: the exact standard names Home / Weekend
+House / Vacation display as Дома / Викендица / Одмор in MK, including invitations
+and list dialogs. Custom names remain untouched. Rename uses the displayed name,
+but saving unchanged text leaves the original stored name intact. This is display
+localization only; EN still displays the English defaults.
 Google/OS camera, gallery and authentication screens control their own language.
 There is no translation service, server change, schema migration or cost.
 

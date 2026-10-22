@@ -19,6 +19,7 @@ import com.example.familyapp.viewmodel.MainMenuViewModel
 import com.example.familyapp.viewmodel.MainMenuViewModelFactory
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -43,7 +44,8 @@ class LanguageUiTest {
         val context = original.createConfigurationContext(config)
         val database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build().also { db = it }
         val repo = RoomFamilyRepository(database)
-        runBlocking { repo.addList("Home", 0); repo.addCatalogItem("Leb", "Bakery") }
+        val names = listOf("Home", "Weekend House", "Vacation", "My custom list")
+        runBlocking { names.forEachIndexed { i, name -> repo.addList(name, i) }; repo.addCatalogItem("Leb", "Bakery") }
         val vm = ViewModelProvider(store, MainMenuViewModelFactory(repo))[MainMenuViewModel::class.java]
         compose.setContent {
             val registryOwner = requireNotNull(LocalActivityResultRegistryOwner.current)
@@ -52,9 +54,14 @@ class LanguageUiTest {
                 MaterialTheme { FamilyAppRoot(vm) }
             }
         }
-        compose.waitUntil(5_000) { vm.lists.value.size == 1 }
+        compose.waitUntil(5_000) { vm.lists.value.size == names.size }
         compose.onNodeWithText("Нов список").assertIsDisplayed()
-        compose.onNodeWithText("Home").assertIsDisplayed()
+        compose.onNodeWithText("Дома").assertIsDisplayed()
+        compose.onNodeWithText("Викендица").assertIsDisplayed()
+        compose.onNodeWithText("Одмор").assertIsDisplayed()
+        compose.onNodeWithText("My custom list").assertIsDisplayed()
+        compose.onNodeWithText("Home").assertDoesNotExist()
+        assertEquals(names, runBlocking { repo.getLists().map { it.name } })
         compose.onNodeWithContentDescription("Отвори мени").performClick()
         compose.onNodeWithText("Каталог на производи").assertIsDisplayed()
         compose.onNodeWithText("Јазик").assertIsDisplayed()

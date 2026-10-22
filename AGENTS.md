@@ -60,3 +60,16 @@ Localize app UI in Android resources; keep user-entered and stored names intact.
 Use AppCompat per-app locales; see docs/LANGUAGES.md. New UI/status copy needs both
 English and Macedonian Cyrillic. Always supply `git push origin master` when a
 version is saved; the owner performs the push unless explicitly delegated.
+
+
+## Standard list labels and media action order — owner update 2026-10-22
+
+Display exactly Home / Weekend House / Vacation as Дома / Викендица / Одмор in MK.
+Keep stored and cloud names unchanged, and retain custom names. Apply the display
+label to cards, list headers, contextual titles, deletion text and invitations.
+Prefill rename with the localized label; saving unchanged text must not rename data.
+
+Product context menus in lists and catalog: View photo first when locally available,
+then Open link when present, then Take photo, Choose from gallery, Add/Edit link,
+Remove photo when present, and existing item edit/removal/deletion actions last.
+Keep removal possible while a remote photo is awaiting download.

@@ -1,6 +1,6 @@
 # Shopping List App — продолжување од друг разговор или компјутер
 
-> Најново: shared photos/links се довршени и проверени во 1.2.0-preview/4 на
+> Најново: shared photos/links се довршени; најнова UI верзија 1.2.1-preview/5 на
 > 22 октомври 2026. Прочитај ја последната секција и docs/SHARED_PRODUCT_MEDIA.md.
 > Постарите WIP предупредувања подолу се историски.
 
@@ -561,3 +561,36 @@ APK, не заменувај debug personal install со release certificate и 
 Следно: сопругата/нов тестер со release APK, OAuth audience ако е во Testing, fresh
 3 defaults/empty catalog, login/invite и секојдневна shopping проба. Потоа договор за
 дизајн/следна продуктна функција. Бесплатни квоти остануваат; cache не заменува сервер.
+
+## MK имиња и редослед на акции — 22 октомври 2026, 1.2.1-preview/5
+
+Owner потврди GitHub push ef7d598 и побара мали UI корекции. Checkpoint пред промени:
+checkpoint-before-mk-labels-actions-2026-10-22 (ef7d598).
+
+Точно Home / Weekend House / Vacation сега се прикажуваат како Дома / Викендица /
+Одмор во MK, а во EN се англиските имиња. localizedListName е само UI mapping;
+custom names и Room/cloud имињата се задржани. Применето на cards, list header,
+action title, delete текст и incoming invitations. Rename prefill користи локализирано
+име; Save на непроменетото име само го затвора дијалогот, без DB/cloud rename.
+
+Една заедничка ProductMediaMenuOptions компонента за list entries и каталог:
+View photo (ако е локално достапна), Open link (ако постои), Take photo, Choose from
+gallery, Add/Edit link, Remove photo (ако постои), потоа старите Edit/Remove/Delete
+акции. Ако има и photo и link, photo е прва, link е втора. Remote-photo removal
+останува достапно пред download. Нема промена на Room schema, sync или backend.
+
+Debug/release/test build + 3 unit tests поминаа. 4 различни UI tests поминаа: MK labels
+со custom/stored-name preservation, catalog camera/gallery, unlinked shared entry
+photo actions и product links. MK fixture користи context override за екрани; вистински
+AppCompat MK rename dialog/prefill/Save е проверен одделно на Note 20. Двата телефона
+се update-installed со DEBUG 1.2.1-preview/5, без uninstall, со приватни pre backups.
+MK standard names се потврдени на двата уреда; вратен е претходниот EN избор. На Honor
+приватниот pre/post comparison ги потврди сите оригинални rows и sync mappings исти.
+Note 20 беше исклучен за поврзување Honor пред неговиот post-backup; нема тврдење за
+нова целосна Note 20 DB споредба во оваа мала UI фаза. Претходната media споредба важи.
+
+Нов потпишан release APK: Shopping-List-App-1.2.1-preview.apk, истиот release key;
+v2/v3 signature, certificate continuity, app ID/label/version се проверени. SHA256:
+88252171725A8FC8C59C0A2F837DAF3850EB661245A24DDB51210436AD6B2D69.
+Користи го овој APK за нови тестери/следен release update, наместо постариот 1.2.0.
+Нема agent push или јавен upload. Owner добива git push origin master.

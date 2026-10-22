@@ -61,7 +61,7 @@ fun SharingScreen(state: SharingState, list: Long?, onBack: () -> Unit,
             incoming.forEach { invitation ->
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp)) {
-                        Text(invitation.name, style = MaterialTheme.typography.titleMedium)
+                        Text(localizedListName(invitation.name), style = MaterialTheme.typography.titleMedium)
                         Text(stringResource(R.string.invited_admin, invitation.email))
                         Row {
                             TextButton(enabled = !state.busy, onClick = { onAction("accept", null, "", invitation.id, null) }) { Text(stringResource(R.string.accept)) }

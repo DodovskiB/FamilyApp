@@ -102,19 +102,30 @@ fun ProductPhoto(fileName: String?, title: String, modifier: Modifier = Modifier
 }
 
 @Composable
-fun PhotoMenuOptions(product: CatalogItemEntity, actions: ProductPhotoActions, enabled: Boolean,
-                     onClose: () -> Unit, onView: () -> Unit, onRemove: () -> Unit, hasRemotePhoto: Boolean = false) {
+fun ProductMediaMenuOptions(product: CatalogItemEntity, actions: ProductPhotoActions, enabled: Boolean,
+                            onClose: () -> Unit, onView: () -> Unit, onRemove: () -> Unit,
+                            onEditLink: () -> Unit, onOpenFailure: () -> Unit,
+                            onOpenLink: (String) -> Unit, hasRemotePhoto: Boolean = false) {
+    if (product.photoFileName != null) {
+        TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
+            onClose(); onView()
+        }) { Text(stringResource(R.string.view_photo)) }
+    }
+    product.linkUrl?.let { url ->
+        TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
+            onClose()
+            try { onOpenLink(url) } catch (_: Exception) { onOpenFailure() }
+        }) { Text(stringResource(R.string.open_link)) }
+    }
     TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
         onClose(); actions.camera(product.id)
     }) { Text(stringResource(R.string.take_photo)) }
     TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
         onClose(); actions.gallery(product.id)
     }) { Text(stringResource(R.string.choose_gallery)) }
-    if (product.photoFileName != null) {
-        TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
-            onClose(); onView()
-        }) { Text(stringResource(R.string.view_photo)) }
-    }
+    TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
+        onClose(); onEditLink()
+    }) { Text(stringResource(if (product.linkUrl == null) R.string.add_link else R.string.edit_link)) }
     if (product.photoFileName != null || hasRemotePhoto) {
         TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
             onClose(); onRemove()

@@ -55,3 +55,9 @@ The owner chose `Product catalog` for both drawer and screen title (MK: Ката
 catalog initially empty. Persistence enables prefix suggestions, reusable products,
 photos and links. Potential later features: barcode lookup, favorites, frequently
 bought products and price history. None is added by this packaging work.
+
+## Latest UI preview
+
+1.2.1-preview / versionCode 5 is the current tester APK, with Macedonian standard-list
+labels and reordered contextual media actions. The existing release certificate is
+unchanged. See the latest PROJECT_HANDOVER.md entry for verification and APK hash.

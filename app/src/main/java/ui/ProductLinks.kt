@@ -19,21 +19,6 @@ import com.example.familyapp.data.entity.CatalogItemEntity
 import com.example.familyapp.viewmodel.MainMenuViewModel
 
 @Composable
-fun ProductLinkMenuOptions(product: CatalogItemEntity, enabled: Boolean,
-                           onClose: () -> Unit, onEdit: () -> Unit, onOpenFailure: () -> Unit,
-                           onOpenLink: (String) -> Unit) {
-    TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = { onClose(); onEdit() }) {
-        Text(if (product.linkUrl == null) stringResource(R.string.add_link) else stringResource(R.string.edit_link))
-    }
-    product.linkUrl?.let { url ->
-        TextButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = {
-            onClose()
-            try { onOpenLink(url) } catch (_: Exception) { onOpenFailure() }
-        }) { Text(stringResource(R.string.open_link)) }
-    }
-}
-
-@Composable
 fun ProductLinkDialog(product: CatalogItemEntity, viewModel: MainMenuViewModel, listEntry: Boolean = false, onDismiss: () -> Unit) {
     var url by rememberSaveable(product.id) { mutableStateOf(product.linkUrl.orEmpty()) }
     val saving by viewModel.catalogSaving.collectAsState()

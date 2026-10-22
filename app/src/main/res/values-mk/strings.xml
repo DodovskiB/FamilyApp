@@ -132,4 +132,7 @@
     <string name="message_15">Пристапот до споделен список заврши. Неговите офлајн промени се зачувани приватно и не се испратени.</string>
     <string name="message_16">Поканата е додадена. Може да се прифати во Покани со оваа Google е-пошта. Не е испратена е-пошта.</string>
     <string name="message_17">Дејството не е завршено. Провери ја врската, е-поштата и пристапот до списокот, па обиди се повторно.</string>
+    <string name="default_list_home">Дома</string>
+    <string name="default_list_weekend">Викендица</string>
+    <string name="default_list_vacation">Одмор</string>
 </resources>

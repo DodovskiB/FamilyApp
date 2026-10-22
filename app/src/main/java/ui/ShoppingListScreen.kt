@@ -45,7 +45,7 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
     val selected = lists.firstOrNull { it.id == selectedListId }
 
     if (selected != null) {
-        ShoppingListDetails(viewModel, selected.id, selected.name) { selectedListId = null }
+        ShoppingListDetails(viewModel, selected.id, localizedListName(selected.name)) { selectedListId = null }
         return
     }
     Column(
@@ -78,16 +78,17 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
                             actionsId = list.id
                         }
                     ).padding(16.dp)) {
-                        Text(list.name, style = MaterialTheme.typography.titleLarge)
+                        Text(localizedListName(list.name), style = MaterialTheme.typography.titleLarge)
                     }
                 }
             }
         }
     }
     lists.firstOrNull { it.id == actionsId }?.let { list ->
+        val displayedName = localizedListName(list.name)
         AlertDialog(
             onDismissRequest = { actionsId = null },
-            title = { Text(list.name) },
+            title = { Text(localizedListName(list.name)) },
             text = {
                 Column {
                 if (sharing != null && sharing.access[list.id]?.role != "admin") {
@@ -101,7 +102,7 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
                 TextButton(enabled = !saving, onClick = {
                     actionsId = null
                     renameId = list.id
-                    renameName = list.name
+                    renameName = displayedName
                 }) { Text(stringResource(R.string.rename)) }
             },
             dismissButton = {
@@ -116,6 +117,7 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
         )
     }
     if (renameId != null) {
+        val originalName = lists.firstOrNull { it.id == renameId }?.let { localizedListName(it.name) }
         AlertDialog(
             onDismissRequest = { if (!saving) renameId = null },
             title = { Text(stringResource(R.string.rename_list)) },
@@ -128,7 +130,8 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
             },
             confirmButton = {
                 TextButton(enabled = renameName.isNotBlank() && !saving, onClick = {
-                    renameId?.let { id -> viewModel.renameList(id, renameName) { renameId = null } }
+                    if (renameName.trim() == originalName) renameId = null
+                    else renameId?.let { id -> viewModel.renameList(id, renameName) { renameId = null } }
                 }) { Text(stringResource(R.string.save)) }
             },
             dismissButton = {
@@ -142,7 +145,7 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
             title = { Text(stringResource(R.string.delete_list)) },
             text = {
                 Column {
-                    Text(stringResource(R.string.delete_list_body, list.name))
+                    Text(stringResource(R.string.delete_list_body, localizedListName(list.name)))
                     if (error != null) Text(localizedMessage(error!!), color = MaterialTheme.colorScheme.error)
                 }
             },
@@ -369,13 +372,11 @@ private fun ShoppingListDetails(viewModel: MainMenuViewModel, listId: Long, name
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
                     val product = item.mediaDisplay()
-                    ProductLinkMenuOptions(product, !saving && !photoSaving,
-                        onClose = { itemActionsId = null },
-                        onEdit = { viewModel.clearCatalogError(); linkingProductId = item.id },
-                        onOpenFailure = { viewModel.linkOpenFailed() }, onOpenLink = { uriHandler.openUri(it) })
-                    PhotoMenuOptions(product, photoActions, !saving && !photoSaving,
+                    ProductMediaMenuOptions(product, photoActions, !saving && !photoSaving,
                         onClose = { itemActionsId = null }, onView = { viewingPhotoId = item.id },
-                        onRemove = { viewModel.removeItemPhoto(item.id) }, hasRemotePhoto = item.photoRemotePath != null)
+                        onRemove = { viewModel.removeItemPhoto(item.id) }, hasRemotePhoto = item.photoRemotePath != null,
+                        onEditLink = { viewModel.clearCatalogError(); linkingProductId = item.id },
+                        onOpenFailure = { viewModel.linkOpenFailed() }, onOpenLink = { uriHandler.openUri(it) })
                     TextButton(enabled = !saving, modifier = Modifier.fillMaxWidth(), onClick = {
                         itemActionsId = null
                         removingId = item.id
