@@ -38,7 +38,7 @@ class SyncController(db: AppDatabase, private val remote: SyncTransport,
             access = mappings.mapNotNull { (local, id) -> access.firstOrNull { it.id == id }?.let { local to it } }.toMap(),
             invitations = snapshot.getValue("invitations").jsonArray.map { row -> row.jsonObject.let {
                 ListInvitation(it.getValue("id").jsonPrimitive.content, it.getValue("list_id").jsonPrimitive.content,
-                    it.getValue("name").jsonPrimitive.content, it.getValue("email").jsonPrimitive.content, it.getValue("incoming").jsonPrimitive.boolean)
+                    it.getValue("name").jsonPrimitive.content, it.getValue("email").jsonPrimitive.content, it.getValue("incoming").jsonPrimitive.boolean, it["group_id"]?.jsonPrimitive?.contentOrNull)
             } },
             members = snapshot.getValue("members").jsonArray.map { row -> row.jsonObject.let {
                 ListMember(it.getValue("id").jsonPrimitive.content, it.getValue("list_id").jsonPrimitive.content, it.getValue("email").jsonPrimitive.content)
@@ -63,6 +63,7 @@ class SyncController(db: AppDatabase, private val remote: SyncTransport,
             val remoteList = list?.let { store.remoteListId(it) }
             when (action) {
                 "invite" -> transport.invite(requireNotNull(remoteList), email.trim())
+                "accept_many", "decline_many" -> (remote as BatchSharingTransport).respondMany(requireNotNull(invitation), action == "accept_many")
                 "accept", "decline" -> transport.respond(requireNotNull(invitation), action == "accept")
                 "remove" -> transport.remove(requireNotNull(remoteList), member, invitation)
                 "refresh" -> Unit
@@ -70,6 +71,22 @@ class SyncController(db: AppDatabase, private val remote: SyncTransport,
             }
             refreshSharing()
             if (action == "invite") mutableSharing.value = mutableSharing.value.copy(message = "Invitation added. They can accept it in Invitations using this Google email. No email was sent.")
+        } catch (error: CancellationException) { throw error }
+        catch (_: Exception) {
+            mutableSharing.value = mutableSharing.value.copy(message = "Could not complete this action. Check your connection, email and list access, then try again.")
+        } finally { mutableSharing.value = mutableSharing.value.copy(busy = false) }
+    }
+
+    suspend fun inviteLists(lists: List<Long>, email: String) = mutex.withLock {
+        mutableSharing.value = mutableSharing.value.copy(busy = true, message = null)
+        try {
+            require(lists.isNotEmpty())
+            val ids = lists.distinct().map { local ->
+                requireNotNull(mutableSharing.value.access[local]).also { require(it.role == "owner") }.id
+            }
+            (remote as BatchSharingTransport).inviteMany(ids, email.trim())
+            refreshSharing()
+            mutableSharing.value = mutableSharing.value.copy(message = "Invitation added. They can accept it in Invitations using this Google email. No email was sent.")
         } catch (error: CancellationException) { throw error }
         catch (_: Exception) {
             mutableSharing.value = mutableSharing.value.copy(message = "Could not complete this action. Check your connection, email and list access, then try again.")

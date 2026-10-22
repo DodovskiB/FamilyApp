@@ -41,7 +41,8 @@ fun FamilyAppRoot(
     accountLabel: String = stringResource(R.string.account),
     onAccount: (() -> Unit)? = null,
     sharing: SharingState? = null,
-    onSharingAction: (String, Long?, String, String?, String?) -> Unit = { _, _, _, _, _ -> }
+    onSharingAction: (String, Long?, String, String?, String?) -> Unit = { _, _, _, _, _ -> },
+    onInviteLists: (List<Long>, String) -> Unit = { _, _ -> }
 ) {
     var catalogOpen by rememberSaveable { mutableStateOf(false) }
     val drawer = rememberDrawerState(DrawerValue.Closed)
@@ -54,7 +55,9 @@ fun FamilyAppRoot(
     var sharingOpen by rememberSaveable { mutableStateOf(false) }
     var sharingList by rememberSaveable { mutableStateOf<Long?>(null) }
     if (sharingOpen && sharing != null) {
-        SharingScreen(sharing, sharingList, onBack = { sharingOpen = false }, onAction = onSharingAction)
+        val availableLists by viewModel.lists.collectAsState()
+        SharingScreen(sharing, sharingList, onBack = { sharingOpen = false }, onAction = onSharingAction,
+            ownedLists = availableLists, onInviteLists = onInviteLists)
         return
     }
 
@@ -76,7 +79,7 @@ fun FamilyAppRoot(
                             Spacer(Modifier.height(20.dp))
                         }
                         if (sharing != null) NavigationDrawerItem(
-                            label = { Text(stringResource(R.string.invitations_count, sharing.invitations.count { it.incoming })) }, selected = false,
+                            label = { Text(stringResource(R.string.invitations_count, sharing.incomingCount)) }, selected = false,
                             onClick = { sharingList = null; sharingOpen = true; scope.launch { drawer.close() } }
                         )
                         NavigationDrawerItem(

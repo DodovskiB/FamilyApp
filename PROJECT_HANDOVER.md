@@ -594,3 +594,15 @@ v2/v3 signature, certificate continuity, app ID/label/version се провер�
 88252171725A8FC8C59C0A2F837DAF3850EB661245A24DDB51210436AD6B2D69.
 Користи го овој APK за нови тестери/следен release update, наместо постариот 1.2.0.
 Нема agent push или јавен upload. Owner добива git push origin master.
+
+## Latest checkpoint — 2026-10-22: grouped invitations (1.3.0-preview / 6)
+
+Implemented: owner selects multiple owned lists and sends one grouped invitation to an email. Recipient sees the selected list names and can accept/decline once. Access remains Admin per list; revocation remains per list. Older clients retain individual invitation behavior. Google login/branding was not changed.
+
+Backend migration `supabase/migrations/20261022131000_grouped_invitations.sql` was deployed successfully. The rollback-only SQL suite `supabase/tests/grouped_invitations.sql` passed (ownership, atomic validation, recipient isolation, repeat acceptance, revocation, decline and partial cancellation). No real user invitations were created by this SQL test.
+
+Verification: debug/release/test APK builds succeeded; 3 unit tests and 8 direct instrumented tests on Honor passed (SharingUiTest, SharingStorageTest, LanguageUiTest). Honor has the new debug APK. Physical acceptance of a grouped invitation between the two real accounts is STILL PENDING. Note 20 and wife's phone have NOT been updated to this version. No new distributable signed 1.3.0 APK has been packaged.
+
+Next session: update Note 20 preserving data, invite Honor's second account to two temporary lists, verify one invitation/one acceptance and both lists editable, verify an unselected list stays private and per-list revocation, then clean up only temporary fixtures. Finish device updates and package the tester APK after acceptance. Google login branding remains deferred.
+
+Safety baseline: remote master was bdc1f34; local tag checkpoint-before-batch-invitations-2026-10-22 protects it. Private Honor data backup and original APK are outside Git in workspace/work/honor-before-batch-20261022-134119.*. Preserve unrelated .idea files. Do not uninstall phones or push without approval. Always provide the push command when saving. Session ended early because only 5% usage remained.

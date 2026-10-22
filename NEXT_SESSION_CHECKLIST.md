@@ -234,3 +234,17 @@ App/test build и 5 UI tests поминаа; Note 20 ажуриран, ориг�
 - [ ] Owner push на новата UI верзија: git push origin master.
 - [ ] За нови тестери користи Shopping-List-App-1.2.1-preview.apk.
 - [ ] Следно: секојдневна shopping проба и нов tester login/sharing, па дизајн по договор.
+
+## NEXT SESSION FIRST — grouped invitations, 2026-10-22 checkpoint
+
+- [x] Implement multi-list selection, grouped invitation and single accept/decline.
+- [x] Deploy grouped invitation migration and pass rollback SQL suite.
+- [x] Build debug/release/test APK; pass 3 unit and 8 instrumented tests.
+- [x] Update Honor to 1.3.0-preview / 6 (debug).
+- [ ] Update Note 20 without uninstalling or losing data.
+- [ ] With temporary lists, physically verify two selected lists -> one invitation -> one acceptance on Honor's second account; confirm both editable and unselected list private.
+- [ ] Verify per-list revocation and clean up temporary fixtures only.
+- [ ] Package new signed tester APK and update wife's phone, preserving signing compatibility.
+- [ ] Google native login/branding is deferred; do not mix it into this checkpoint.
+
+No new signed 1.3.0 distribution APK exists yet. Read the latest PROJECT_HANDOVER.md section before continuing. Stopped safely due to 5% remaining usage.

@@ -136,4 +136,7 @@
     <string name="default_list_home">Home</string>
     <string name="default_list_weekend">Weekend House</string>
     <string name="default_list_vacation">Vacation</string>
+    <string name="select_lists">Select lists to share</string>
+    <string name="send_invitation">Send invitation</string>
+    <string name="members_for_list">Members of %1$s</string>
 </resources>

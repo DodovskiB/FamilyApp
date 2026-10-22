@@ -135,4 +135,7 @@
     <string name="default_list_home">Дома</string>
     <string name="default_list_weekend">Викендица</string>
     <string name="default_list_vacation">Одмор</string>
+    <string name="select_lists">Избери списоци за споделување</string>
+    <string name="send_invitation">Испрати покана</string>
+    <string name="members_for_list">Членови на %1$s</string>
 </resources>

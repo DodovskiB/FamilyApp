@@ -5,6 +5,10 @@ import com.example.familyapp.R
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.Alignment
+import com.example.familyapp.data.entity.ListEntity
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -18,11 +22,15 @@ import com.example.familyapp.sync.SharingState
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SharingScreen(state: SharingState, list: Long?, onBack: () -> Unit,
-                  onAction: (String, Long?, String, String?, String?) -> Unit) {
+                  onAction: (String, Long?, String, String?, String?) -> Unit,
+                  ownedLists: List<ListEntity> = emptyList(), onInviteLists: (List<Long>, String) -> Unit = { _, _ -> }) {
     var email by rememberSaveable(list) { mutableStateOf("") }
     var removeMember by rememberSaveable(list) { mutableStateOf<String?>(null) }
     var cancelInvitation by rememberSaveable(list) { mutableStateOf<String?>(null) }
     val access = state.access[list]
+    var selectedLists by rememberSaveable(list) { mutableStateOf(listOfNotNull(list)) }
+    val available = ownedLists.filter { state.access[it.id]?.role == "owner" }
+    val selected = selectedLists.filter { id -> available.any { it.id == id } }
     BackHandler { onBack() }
     Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -36,8 +44,23 @@ fun SharingScreen(state: SharingState, list: Long?, onBack: () -> Unit,
             else {
                 Text(stringResource(R.string.owner_info))
                 OutlinedTextField(email, { email = it }, label = { Text(stringResource(R.string.google_email)) }, singleLine = true, enabled = !state.busy)
-                Button(enabled = !state.busy && email.isNotBlank(), onClick = { onAction("invite", list, email, null, null) }) { Text(stringResource(R.string.invite)) }
+                Text(stringResource(R.string.select_lists), style = MaterialTheme.typography.titleMedium)
+                available.forEach { candidate ->
+                    val checked = candidate.id in selected
+                    Row(Modifier.fillMaxWidth().toggleable(value = checked, enabled = !state.busy, role = Role.Checkbox,
+                        onValueChange = { selectedLists = if (it) selectedLists + candidate.id else selectedLists - candidate.id }),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = checked, onCheckedChange = null)
+                        Text(localizedListName(candidate.name), Modifier.weight(1f))
+                    }
+                }
+                Button(enabled = state.ready && !state.busy && email.isNotBlank() && selected.isNotEmpty(),
+                    onClick = { onInviteLists(selected, email) }) { Text(stringResource(R.string.send_invitation)) }
                 Text(stringResource(R.string.invite_info))
+                ownedLists.firstOrNull { it.id == list }?.let {
+                    HorizontalDivider()
+                    Text(stringResource(R.string.members_for_list, localizedListName(it.name)), style = MaterialTheme.typography.titleMedium)
+                }
                 Text(stringResource(R.string.admins), style = MaterialTheme.typography.titleMedium)
                 val members = state.members.filter { it.listId == access.id }
                 if (members.isEmpty()) Text(stringResource(R.string.no_members))
@@ -56,16 +79,19 @@ fun SharingScreen(state: SharingState, list: Long?, onBack: () -> Unit,
                 }
             }
         } else {
-            val incoming = state.invitations.filter { it.incoming }
+            val incoming = state.invitations.filter { it.incoming }.groupBy { it.groupId ?: it.id }
             if (incoming.isEmpty()) Text(stringResource(R.string.no_invitations))
-            incoming.forEach { invitation ->
+            incoming.forEach { (_, entries) ->
+                val invitation = entries.first()
+                val grouped = invitation.groupId != null
+                val responseId = invitation.groupId ?: invitation.id
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp)) {
-                        Text(localizedListName(invitation.name), style = MaterialTheme.typography.titleMedium)
+                        entries.forEach { Text(localizedListName(it.name), style = MaterialTheme.typography.titleMedium) }
                         Text(stringResource(R.string.invited_admin, invitation.email))
                         Row {
-                            TextButton(enabled = !state.busy, onClick = { onAction("accept", null, "", invitation.id, null) }) { Text(stringResource(R.string.accept)) }
-                            TextButton(enabled = !state.busy, onClick = { onAction("decline", null, "", invitation.id, null) }) { Text(stringResource(R.string.decline)) }
+                            TextButton(enabled = !state.busy, onClick = { onAction(if (grouped) "accept_many" else "accept", null, "", responseId, null) }) { Text(stringResource(R.string.accept)) }
+                            TextButton(enabled = !state.busy, onClick = { onAction(if (grouped) "decline_many" else "decline", null, "", responseId, null) }) { Text(stringResource(R.string.decline)) }
                         }
                     }
                 }

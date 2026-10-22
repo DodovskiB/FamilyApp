@@ -104,7 +104,7 @@ class MainActivity : AppCompatActivity() {
                             onAccount = { accountOpen = true }, sharing = sharing,
                             onSharingAction = { action, list, email, invitation, member ->
                                 scope.launch { sync?.sharingAction(action, list, email, invitation, member) }
-                            })
+                            }, onInviteLists = { lists, email -> scope.launch { sync?.inviteLists(lists, email) } })
                     }
                 }
             }
