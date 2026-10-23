@@ -299,3 +299,14 @@ Do not repeat already passing checks unless new changes/failures justify it.
 - [ ] Keep Changes test / Changes test product and its invitation for that check.
 - [ ] After that check, clean only Changes test fixtures and update wife's phone.
 - [ ] Owner push: git push origin master.
+
+## Latest: Note 20 is now updated (2026-10-23)
+
+- [x] Owner push through 605bc92 confirmed.
+- [x] Note 20 private backup validated; DEBUG 1.4.0-preview/8 update-installed.
+- [x] App opens; EN/System preserved; Changes test invitation visible.
+- [ ] Wait for owner to reopen app after call and confirm ready; then accept only Changes test.
+- [ ] Complete badge appearance/restart/clear/open-live-update checks with Honor.
+- [ ] Clean temporary Changes test list/entry and private Honor catalog fixture afterward.
+
+No new APK/build is needed to continue from here.

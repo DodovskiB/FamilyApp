@@ -734,3 +734,19 @@ those up. All 3 extra live-cancellation fixtures ARE cleaned. MK/System retained
 No agent push. Feature commit is 3330df4; latest confirmed owner push remains
 39b1495 until the owner supplies newer push output. Next: Note 20 when available,
 then wife's release APK update. Do not invent new features without an agreed scope.
+
+## Note 20 updated — 2026-10-23, physical acceptance still pending
+
+Owner confirmed push through 605bc92 on master and then connected Note 20.
+Made private backup workspace/work/note20-before-badges-20261023-021734.tar;
+all SQLite quick_check results passed. Update-installed existing DEBUG APK version8
+(1.4.0-preview) without uninstall. App opened normally; original three list cards,
+EN locale, System theme and one Changes test invitation were visible.
+
+The phone screen became unavailable during an active call before invitation
+acceptance. Stopped UI control; asked owner to reopen Shopping List App and say
+ready after the call. No test invitation accepted and no cross-device badge result
+yet. Resume at Invitations (1) -> verify Changes test only -> Accept. Follow the
+existing badge acceptance plan above. Honor remains the fixture owner. Do not
+repeat installation/build/tests just because this checkpoint is resumed.
+No production-code or APK changes in this documentation-only update.
