@@ -240,3 +240,7 @@ while the list is visibly open; (3) persistent device-local System / Light / Dar
 choice in the drawer, System default. Existing theme uses system darkness and
 Android 12+ dynamic colors; preserve dynamic colors unless separately requested.
 No OS push notification service is requested for the home-card badge.
+
+## Implemented follow-ups — 2026-10-23
+
+Group cancellation, actor-aware change badges and saved System/Light/Dark are implemented in 1.4.0-preview/8. Backend deployed and regression-tested; Honor updated. Physical two-phone badge acceptance, Note 20 update and temporary Changes test cleanup are pending. Read the latest PROJECT_HANDOVER.md section.

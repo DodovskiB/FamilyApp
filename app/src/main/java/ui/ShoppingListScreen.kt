@@ -25,6 +25,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.familyapp.viewmodel.MainMenuViewModel
 import com.example.familyapp.sync.SharingState
 import com.example.familyapp.data.entity.CatalogItemEntity
@@ -33,7 +36,8 @@ import com.example.familyapp.data.entity.ItemEntity
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
-                       sharing: SharingState? = null, onShare: (Long) -> Unit = {}, onNewList: () -> Unit = {}) {
+                       sharing: SharingState? = null, onShare: (Long) -> Unit = {}, onNewList: () -> Unit = {},
+                       unreadLists: Set<Long> = emptySet(), onVisibleList: (Long?) -> Unit = {}) {
     val lists by viewModel.lists.collectAsState()
     val saving by viewModel.listSaving.collectAsState()
     val error by viewModel.listError.collectAsState()
@@ -43,6 +47,15 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
     var deleteId by rememberSaveable { mutableStateOf<Long?>(null) }
     var actionsId by rememberSaveable { mutableStateOf<Long?>(null) }
     val selected = lists.firstOrNull { it.id == selectedListId }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val reportVisible by rememberUpdatedState(onVisibleList)
+    DisposableEffect(lifecycle, selected?.id) {
+        fun report() { reportVisible(selected?.id.takeIf { lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED) }) }
+        val observer = LifecycleEventObserver { _, _ -> report() }
+        lifecycle.addObserver(observer)
+        report()
+        onDispose { lifecycle.removeObserver(observer); reportVisible(null) }
+    }
 
     if (selected != null) {
         ShoppingListDetails(viewModel, selected.id, localizedListName(selected.name)) { selectedListId = null }
@@ -78,7 +91,13 @@ fun ShoppingListScreen(viewModel: MainMenuViewModel, onOpenMenu: () -> Unit,
                             actionsId = list.id
                         }
                     ).padding(16.dp)) {
-                        Text(localizedListName(list.name), style = MaterialTheme.typography.titleLarge)
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            Text(localizedListName(list.name), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                            if (list.id in unreadLists) {
+                                val description = stringResource(R.string.list_has_changes)
+                                Badge(Modifier.semantics { contentDescription = description })
+                            }
+                        }
                     }
                 }
             }

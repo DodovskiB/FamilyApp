@@ -6,6 +6,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.Alignment
 import com.example.familyapp.data.entity.ListEntity
@@ -31,6 +33,10 @@ fun SharingScreen(state: SharingState, list: Long?, onBack: () -> Unit,
     var selectedLists by rememberSaveable(list) { mutableStateOf(listOfNotNull(list)) }
     val available = ownedLists.filter { state.access[it.id]?.role == "owner" }
     val selected = selectedLists.filter { id -> available.any { it.id == id } }
+    val cancellation = state.invitations.firstOrNull { it.id == cancelInvitation && !it.incoming }
+    val cancelledGroup = cancellation?.let { chosen -> state.invitations.filter {
+        !it.incoming && if (chosen.groupId == null) it.id == chosen.id else it.groupId == chosen.groupId
+    } }.orEmpty()
     BackHandler { onBack() }
     Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -43,7 +49,9 @@ fun SharingScreen(state: SharingState, list: Long?, onBack: () -> Unit,
             else if (access.role == "admin") Text(stringResource(R.string.admin_info))
             else {
                 Text(stringResource(R.string.owner_info))
-                OutlinedTextField(email, { email = it }, label = { Text(stringResource(R.string.google_email)) }, singleLine = true, enabled = !state.busy)
+                OutlinedTextField(email, { email = it }, label = { Text(stringResource(R.string.google_email)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, autoCorrectEnabled = false),
+                    singleLine = true, enabled = !state.busy)
                 Text(stringResource(R.string.select_lists), style = MaterialTheme.typography.titleMedium)
                 available.forEach { candidate ->
                     val checked = candidate.id in selected
@@ -101,7 +109,12 @@ fun SharingScreen(state: SharingState, list: Long?, onBack: () -> Unit,
     if (removeMember != null || cancelInvitation != null) {
         AlertDialog(onDismissRequest = { removeMember = null; cancelInvitation = null },
             title = { Text(if (removeMember != null) stringResource(R.string.remove_access_confirm) else stringResource(R.string.cancel_invitation_confirm)) },
-            text = { Text(stringResource(R.string.remove_access_info)) },
+            text = {
+                if (cancelInvitation != null) Column {
+                    Text(stringResource(R.string.cancel_invitation_group_info))
+                    cancelledGroup.forEach { Text(localizedListName(it.name)) }
+                } else Text(stringResource(R.string.remove_access_info))
+            },
             confirmButton = { TextButton(enabled = !state.busy, onClick = {
                 onAction("remove", list, "", cancelInvitation, removeMember)
                 removeMember = null; cancelInvitation = null

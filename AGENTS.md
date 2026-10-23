@@ -73,3 +73,16 @@ Product context menus in lists and catalog: View photo first when locally availa
 then Open link when present, then Take photo, Choose from gallery, Add/Edit link,
 Remove photo when present, and existing item edit/removal/deletion actions last.
 Keep removal possible while a remote photo is awaiting download.
+
+## Shared changes and appearance — approved 2026-10-23
+
+Cancel an invitation group atomically across all pending rows, preserve already
+accepted grants, and keep member revocation per list. Show every affected list in
+the cancellation confirmation. Email input must disable autocorrect.
+
+Home list badges represent unseen content changes by another account. Clear on
+opening, acknowledge successfully downloaded changes while visible, persist per
+phone/account, and preserve state through network failure. No OS push service.
+
+Drawer Theme offers saved System / Light / Dark, System default. Preserve dynamic
+colors and the existing EN/MK choice. See docs/CHANGES_AND_THEME.md.

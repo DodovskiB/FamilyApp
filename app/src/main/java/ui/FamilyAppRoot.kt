@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import com.example.familyapp.viewmodel.MainMenuViewModel
 import kotlinx.coroutines.launch
 import com.example.familyapp.sync.SharingState
+import com.example.familyapp.ui.theme.ThemeMode
+import com.example.familyapp.ui.theme.ThemeSelector
 
 @Composable
 fun FamilyAppRoot(
@@ -42,7 +44,11 @@ fun FamilyAppRoot(
     onAccount: (() -> Unit)? = null,
     sharing: SharingState? = null,
     onSharingAction: (String, Long?, String, String?, String?) -> Unit = { _, _, _, _, _ -> },
-    onInviteLists: (List<Long>, String) -> Unit = { _, _ -> }
+    onInviteLists: (List<Long>, String) -> Unit = { _, _ -> },
+    unreadLists: Set<Long> = emptySet(),
+    onVisibleList: (Long?) -> Unit = {},
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    onThemeChange: (ThemeMode) -> Unit = {}
 ) {
     var catalogOpen by rememberSaveable { mutableStateOf(false) }
     val drawer = rememberDrawerState(DrawerValue.Closed)
@@ -98,6 +104,7 @@ fun FamilyAppRoot(
                         )
                     }
                     HorizontalDivider()
+                    ThemeSelector(themeMode, onThemeChange)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                         Text(stringResource(R.string.language), Modifier.weight(1f))
@@ -117,6 +124,7 @@ fun FamilyAppRoot(
                 ShoppingItemsScreen(viewModel, onBack = { catalogOpen = false })
             } else {
                 ShoppingListScreen(viewModel, onOpenMenu = { scope.launch { drawer.open() } }, sharing = sharing,
+                    unreadLists = unreadLists, onVisibleList = onVisibleList,
                     onShare = { sharingList = it; sharingOpen = true },
                     onNewList = { viewModel.clearListError(); newListName = ""; newListOpen = true })
             }

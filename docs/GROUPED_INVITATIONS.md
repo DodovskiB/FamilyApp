@@ -42,14 +42,15 @@ before synchronization. Existing ownership, revocation and media tests also pass
 - Per-list revocation and temporary-fixture cleanup: see latest handover section
   for the final physical outcome.
 
-## Known follow-up work
+## Follow-up implemented in 1.4.0-preview / 8
 
-Grouped invitation cancellation is still per-list in this version. Owner reported
-that cancelling one pending row leaves the other rows in its group pending.
-Fix cancellation to cover all still-pending rows of that owner's group atomically;
-do not turn accepted-member removal into group revocation.
+The reported cancellation bug is fixed by migration
+`20261023090000_cancel_groups_and_activity.sql`: cancelling one pending invitation
+now cancels all pending rows of its owner's group atomically. Accepted-member
+removal remains per list and accepted grants survive cancellation. The confirmation
+shows the affected names. Three-list cancellation and partial legacy acceptance
+were verified in the deployed rollback SQL suite.
 
-After finishing acceptance: add per-account/per-device unseen-change indicators
-for other members' changes, cleared on opening a list; add persistent System /
-Light / Dark choice in the drawer. Existing Android 12+ dynamic colors explain
-palette differences across phones. These requested changes are not implemented yet.
+Per-account/per-device unseen-change indicators and persistent System / Light / Dark
+selection are implemented. See docs/CHANGES_AND_THEME.md and the latest handover
+for final verification and pending cross-device acceptance.

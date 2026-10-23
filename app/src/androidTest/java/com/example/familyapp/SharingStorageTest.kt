@@ -35,7 +35,11 @@ class SharingStorageTest {
         })
         put("invitations", JsonArray(emptyList())); put("members", JsonArray(emptyList()))
     }
-    private inner class Transport : SyncTransport, SharingTransport, ItemMediaTransport {
+    private inner class Transport : SyncTransport, SharingTransport, ItemMediaTransport, ListActivityTransport {
+        var activityRevision = 0L
+        override suspend fun activitySnapshot() = if (!allowed) JsonArray(emptyList()) else buildJsonArray {
+            add(buildJsonObject { put("id", listId); put("revision", activityRevision) })
+        }
         var allowed = true
         var unavailable = false
         val personal = mutableListOf<JsonObject>()
@@ -80,6 +84,38 @@ class SharingStorageTest {
         override suspend fun remove(list: String, member: String?, invitation: String?) = Unit
     }
     private fun db() = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+
+    @Test fun badgesTrackDownloadedContentVisibilityOfflineStateAndRevocation() = runBlocking {
+        val db = db()
+        try {
+            val transport = Transport()
+            val sync = SyncController(db, transport)
+            sync.synchronize()
+            val list = RoomFamilyRepository(db).getLists().single().id
+            assertTrue(sync.unreadLists.value.isEmpty())
+            transport.activityRevision = 1
+            sync.synchronize()
+            assertEquals(setOf(list),sync.unreadLists.value)
+            sync.setVisibleList(list)
+            assertTrue(sync.unreadLists.value.isEmpty())
+            transport.activityRevision = 2
+            sync.synchronize()
+            assertTrue(sync.unreadLists.value.isEmpty())
+            sync.setVisibleList(null)
+            transport.activityRevision = 3
+            sync.synchronize()
+            assertEquals(setOf(list),sync.unreadLists.value)
+            val reopened = SyncController(db,transport)
+            reopened.restoreSharingAccess()
+            assertEquals(setOf(list),reopened.unreadLists.value)
+            transport.unavailable = true
+            try { sync.synchronize();fail("Offline request succeeded") } catch (_: IllegalStateException) { }
+            assertEquals(setOf(list),sync.unreadLists.value)
+            transport.unavailable = false; transport.allowed = false
+            sync.synchronize()
+            assertTrue(sync.unreadLists.value.isEmpty())
+        } finally { db.close() }
+    }
 
     @Test fun newSharedEntryCommitsBeforeItsQueuedEdits() = runBlocking {
         val db = db()

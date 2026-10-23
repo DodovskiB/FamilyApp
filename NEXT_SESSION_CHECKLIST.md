@@ -1,6 +1,6 @@
 # Shopping List App — чек-листа за продолжување
 
-> Актуелно: 1.3.1-preview/7; види ја последната секција за групни покани и проверки.
+> Актуелно: 1.4.0-preview/8; види ја последната секција за промени, тема и Note 20.
 > Следи ја последната секција; старите чекори/WIP предупредувања се историски.
 
 Подготвено: 21 октомври 2026. За следната сесија: 22 октомври 2026.
@@ -267,3 +267,24 @@ No new signed 1.3.0 distribution APK exists yet. Read the latest PROJECT_HANDOVE
 
 Do not claim grouped Cancel/badges/theme finished: they are planned follow-ups.
 Always provide git push origin master on saving; owner performs push.
+
+## Current work — 2026-10-23, version 1.4.0-preview / 8
+
+- [x] Group Cancel fixed atomically; three-list and mixed accepted/pending SQL checks pass.
+- [x] Actor-aware private activity tracking deployed; own changes excluded.
+- [x] Persistent per-phone/account badges, cleared on opening and while visible.
+- [x] System / Light / Dark drawer choice, System default; dynamic colors retained.
+- [x] Debug/release/test APK builds, 3 unit + 15 instrumented tests passed.
+- [x] Honor updated, MK retained; Dark survives restart; restored System.
+- [x] Original Honor data comparison passed; only 3 disposable fixture rows added.
+- [x] Signed 1.4.0 APK prepared, existing release certificate verified.
+- [ ] Connect and update Note 20 (chat question pending), backup before install -r.
+- [ ] Accept only Changes test invitation; verify actual cross-device badge,
+      restart persistence, clear-on-open, live changes while open and no stale badge.
+- [ ] Delete only Changes test list/entry and Honor's private Changes test product.
+- [ ] Update wife's phone with the signed release APK when available.
+- [ ] Owner push: git push origin master.
+- [ ] Google native login / branding remains deferred.
+
+See latest PROJECT_HANDOVER.md section for exact fixture ownership and next actions.
+Do not repeat already passing checks unless new changes/failures justify it.

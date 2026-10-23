@@ -29,7 +29,11 @@ interface BatchSharingTransport {
     suspend fun respondMany(group: String, accept: Boolean)
 }
 
-class SupabaseSyncTransport(private val accounts: AccountRepository, private val userId: String) : SyncTransport, SharingTransport, ItemMediaTransport, BatchSharingTransport {
+interface ListActivityTransport {
+    suspend fun activitySnapshot(): JsonArray
+}
+
+class SupabaseSyncTransport(private val accounts: AccountRepository, private val userId: String) : SyncTransport, SharingTransport, ItemMediaTransport, BatchSharingTransport, ListActivityTransport {
     // A request keeps the token belonging to the expected account, even if the UI signs out
     // or changes accounts while the request is in flight. Credentials are never logged.
     private suspend fun rpc(name: String, parameters: JsonObject): String {
@@ -57,6 +61,7 @@ class SupabaseSyncTransport(private val accounts: AccountRepository, private val
     }
 
     override suspend fun snapshot() = Json.parseToJsonElement(rpc("shopping_sharing_snapshot", buildJsonObject {})).jsonObject
+    override suspend fun activitySnapshot() = Json.parseToJsonElement(rpc("shopping_activity_snapshot", buildJsonObject {})).jsonArray
     override suspend fun applyShared(owner: String, list: String, operations: JsonArray) {
         rpc("shopping_sharing_apply", buildJsonObject { put("owner_id", owner); put("list_id", list); put("operations", operations) })
     }

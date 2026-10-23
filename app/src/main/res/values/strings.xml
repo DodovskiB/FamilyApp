@@ -139,4 +139,10 @@
     <string name="select_lists">Select lists to share</string>
     <string name="send_invitation">Send invitation</string>
     <string name="members_for_list">Members of %1$s</string>
+    <string name="cancel_invitation_group_info">Cancel the pending invitation for all these lists? Existing accepted access is kept.</string>
+    <string name="list_has_changes">New changes in this list</string>
+    <string name="theme">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
 </resources>

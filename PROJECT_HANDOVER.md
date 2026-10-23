@@ -1,7 +1,7 @@
 # Shopping List App — продолжување од друг разговор или компјутер
 
-> Најново: 1.3.1-preview/7, групни покани и поправка за брзи измени на нов shared
-> производ. Прочитај ја последната секција и docs/GROUPED_INVITATIONS.md.
+> Најново: 1.4.0-preview/8 — групно Cancel, знакче за промени и избор на тема.
+> Прочитај ја последната секција и docs/CHANGES_AND_THEME.md за проверките и што чека.
 > Постарите WIP предупредувања подолу се историски.
 
 Последно ажурирање: **21 октомври 2026**, Europe/Skopje.
@@ -658,3 +658,55 @@ System/Light/Dark selection. Wife's phone update remains pending. Existing build
 test, signing and data-preservation results above apply; no redundant rebuild was
 needed for these documentation-only changes. Keep the signed 1.3.1 APK and private
 signing key unchanged. The annotated stable tag records this pause checkpoint.
+
+## Latest checkpoint — 2026-10-23: 1.4.0-preview / 8
+
+Implemented the three approved follow-ups: group Cancel, unread-change badges,
+and persistent System/Light/Dark drawer choice (System default, dynamic colors
+retained). Email invitation input now uses an email keyboard with autocorrect off.
+Details and semantics: docs/CHANGES_AND_THEME.md.
+
+Backend migration 20261023090000_cancel_groups_and_activity.sql is DEPLOYED.
+Exact source was matched to editor content. Full rollback SQL regression passed
+before deployment and again against deployed functions: three-row cancellation,
+accepted grant preservation, retry/non-owner denial, per-list revocation, actor
+filtering, private/revoked activity isolation and media changes. Synthetic test
+accounts/records were rolled back. Existing real invitations were not cancelled by
+these SQL tests. No paid service, new OAuth keys or public exposure was introduced.
+
+Android Studio Gradle debug/release/test APKs built; 3 unit tests passed. Direct
+Honor instrumentation: 15 tests passed (SharingStorageTest 5, SharingUiTest 4,
+AppearanceChangesUiTest 3, ListChangeStoreTest 1, ThemePreferenceTest 1,
+LanguageUiTest 1). After the final email keyboard adjustment, SharingUiTest's 4
+tests passed again with the rebuilt app. One earlier UI fixture failed because
+its English Context override hid the activity-result registry; the fixture was
+corrected and all 15 subsequently passed. No production photo behavior changed.
+
+Honor is update-installed DEBUG version8 without uninstall; MK locale preserved.
+Real drawer choice Dark persisted after force-stop/relaunch; Light and System also
+selected successfully, ending on System. Account showed Up to date. Private pre/post
+comparison confirmed every original list/item/catalog row unchanged, with only
+three disposable fixture rows added and no queued sync operations.
+Backups stay privately in workspace/work/honor-before-cancel-badges-theme-20261023-014651.tar
+and honor-after-cancel-badges-theme-20261023-015847.tar, never in Git.
+
+PENDING USER/PHONE STEP: Note 20 has not been connected/updated this session.
+The chat asks the owner to connect Note 20 unlocked with internet, leaving Honor
+online. For the physical badge check, Honor's second account OWNS a temporary
+Changes test list containing Changes test product (qty1, not purchased), and sent
+an invitation only for that list to the primary Note 20 account. No originals
+were shared by this fixture. Honor was left open on that list. On Note 20: backup,
+update-install DEBUG version8, accept that invitation, clear initial badge by
+opening, return home, then have Honor + once. Verify badge appears, survives app
+restart, and clears on opening. With Note 20 still open, have Honor + again;
+verify live quantity update and no badge after returning home. Then clean up only
+this temporary list/entry and the private Honor test-catalog product. DO NOT claim
+physical two-device badge acceptance or fixture cleanup complete yet.
+
+Signed release artifact: workspace/Shopping-List-App-1.4.0-preview.apk, versionCode8.
+v2/v3 signatures verified and release certificate matches 1.3.1. SHA256:
+4E4D2F7B99A84B2A73DB8ED81E4B701E88CA019A5DAD95AC4D699971985B2708.
+Wife's phone update remains pending. Release key and private phone databases remain
+outside Git. Last owner-confirmed remote commit is 39b1495 (stable-2026-10-22).
+Local pre-change tag: checkpoint-before-cancel-badges-theme-2026-10-23. Preserve
+unrelated .idea deviceManager/easycode files. No agent push; provide push command.

@@ -33,7 +33,7 @@ class SharingUiTest {
         val state = SharingState(ready=true,access=mapOf(
             1L to ListAccess("one","owner","owner"),2L to ListAccess("two","owner","owner"),
             3L to ListAccess("three","other","admin")))
-        compose.setContent { MaterialTheme { SharingScreen(state,1L,{}, { _,_,_,_,_-> },
+        compose.setEnglishContent { MaterialTheme { SharingScreen(state,1L,{}, { _,_,_,_,_-> },
             ownedLists=listOf(ListEntity(1,"First",0),ListEntity(2,"Second",1),ListEntity(3,"Not owned",2)),
             onInviteLists={ ids,email -> sent=ids;address=email }) } }
         compose.onNodeWithText("Not owned").assertDoesNotExist()
@@ -52,7 +52,7 @@ class SharingUiTest {
             ListInvitation("a","one","First","recipient@batch.invalid",true,"group"),
             ListInvitation("b","two","Second","recipient@batch.invalid",true,"group")))
         assertEquals(1,state.incomingCount)
-        compose.setContent { MaterialTheme { SharingScreen(state,null,{}, { a,_,_,group,_ -> action=a;id=group }) } }
+        compose.setEnglishContent { MaterialTheme { SharingScreen(state,null,{}, { a,_,_,group,_ -> action=a;id=group }) } }
         compose.onNodeWithText("First").assertIsDisplayed();compose.onNodeWithText("Second").assertIsDisplayed()
         compose.onAllNodesWithText("Accept").assertCountEquals(1)
         compose.onNodeWithText("Accept").performClick()
@@ -69,7 +69,7 @@ class SharingUiTest {
             val id = runBlocking { RoomFamilyRepository(db).addList("Disposable UI list", 0) }
             val vm = ViewModelProvider(store, MainMenuViewModelFactory(RoomFamilyRepository(db)))[MainMenuViewModel::class.java]
             val state = mutableStateOf(SharingState(access = mapOf(id to ListAccess("list", "owner", "admin")), ready = true))
-            compose.setContent { MaterialTheme { ShoppingListScreen(vm, {}, state.value) } }
+            compose.setEnglishContent { MaterialTheme { ShoppingListScreen(vm, {}, state.value) } }
             compose.waitUntil(5_000) { vm.lists.value.isNotEmpty() }
             compose.onNodeWithText("Delete").assertDoesNotExist()
             compose.onNodeWithText("Share / Manage members").assertDoesNotExist()
@@ -87,7 +87,7 @@ class SharingUiTest {
         var action: String? = null
         var selected: String? = null
         val state = SharingState(invitations = listOf(ListInvitation("invitation", "list", "Disposable invitation", "recipient@sharing.invalid", true)))
-        compose.setContent { MaterialTheme { SharingScreen(state, null, {}, { a, _, _, invitation, _ -> action = a; selected = invitation }) } }
+        compose.setEnglishContent { MaterialTheme { SharingScreen(state, null, {}, { a, _, _, invitation, _ -> action = a; selected = invitation }) } }
         compose.onNodeWithText("Disposable invitation").assertIsDisplayed()
         compose.onNodeWithText("Accept").performClick()
         compose.runOnIdle { assertEquals("accept", action); assertEquals("invitation", selected) }

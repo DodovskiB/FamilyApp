@@ -138,4 +138,10 @@
     <string name="select_lists">Избери списоци за споделување</string>
     <string name="send_invitation">Испрати покана</string>
     <string name="members_for_list">Членови на %1$s</string>
+    <string name="cancel_invitation_group_info">Да се откаже поканата за сите овие списоци? Веќе прифатениот пристап останува.</string>
+    <string name="list_has_changes">Нови промени во овој список</string>
+    <string name="theme">Тема</string>
+    <string name="theme_system">Системска</string>
+    <string name="theme_light">Светла</string>
+    <string name="theme_dark">Темна</string>
 </resources>

@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.example.familyapp.ui.theme.ThemePreferences
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -58,7 +60,9 @@ class MainActivity : AppCompatActivity() {
         }
         if (savedInstanceState == null) accountViewModel.handleCallback(intent.data)
         setContent {
-            FamilyAppTheme {
+            val appearance = remember { ThemePreferences(applicationContext) }
+            val themeMode by appearance.mode.collectAsState()
+            FamilyAppTheme(darkTheme = themeMode.isDark(isSystemInDarkTheme())) {
                 val account by accountViewModel.state.collectAsState()
                 val db = remember(account.databaseName) { AppDatabase.getInstance(applicationContext, account.databaseName) }
                 val setup = if (account.databaseName == "familyapp.db") "familyapp_setup" else "setup_${account.databaseName}"
@@ -67,6 +71,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 val syncStatus = sync?.status?.collectAsState()?.value
                 val sharing = sync?.sharing?.collectAsState()?.value
+                val unread = sync?.unreadLists?.collectAsState()?.value.orEmpty()
                 val scope = rememberCoroutineScope()
                 LaunchedEffect(sync) {
                     sync?.let { controller ->
@@ -104,7 +109,9 @@ class MainActivity : AppCompatActivity() {
                             onAccount = { accountOpen = true }, sharing = sharing,
                             onSharingAction = { action, list, email, invitation, member ->
                                 scope.launch { sync?.sharingAction(action, list, email, invitation, member) }
-                            }, onInviteLists = { lists, email -> scope.launch { sync?.inviteLists(lists, email) } })
+                            }, onInviteLists = { lists, email -> scope.launch { sync?.inviteLists(lists, email) } },
+                            unreadLists = unread, onVisibleList = { list -> scope.launch { sync?.setVisibleList(list) } },
+                            themeMode = themeMode, onThemeChange = appearance::select)
                     }
                 }
             }

@@ -23,6 +23,17 @@ class SyncController(db: AppDatabase, private val remote: SyncTransport,
     private val mutex = Mutex()
     private val mutableSharing = MutableStateFlow(SharingState())
     val sharing = mutableSharing.asStateFlow()
+    private val listChanges = ListChangeStore(db)
+    private val mutableUnread = MutableStateFlow<Set<Long>>(emptySet())
+    val unreadLists = mutableUnread.asStateFlow()
+    private var visibleList: Long? = null
+
+    suspend fun setVisibleList(list: Long?) = mutex.withLock {
+        visibleList = list
+        store.prepare()
+        list?.let { store.remoteListId(it) }?.let { listChanges.markSeen(it) }
+        mutableUnread.value = listChanges.unread(store.listMappings())
+    }
 
     private suspend fun refreshSharing() {
         val transport = remote as? SharingTransport ?: return
@@ -53,6 +64,7 @@ class SyncController(db: AppDatabase, private val remote: SyncTransport,
         mutableSharing.value = mutableSharing.value.copy(access = store.listMappings().mapNotNull { (local, remote) ->
             shared[remote]?.let { local to ListAccess(remote, it, "admin") }
         }.toMap(), ready = true)
+        mutableUnread.value = listChanges.unread(store.listMappings())
     }
 
     suspend fun sharingAction(action: String, list: Long? = null, email: String = "", invitation: String? = null,
@@ -117,6 +129,12 @@ class SyncController(db: AppDatabase, private val remote: SyncTransport,
         // Start durable capture before any network request; user edits during the first
         // download must be queued too, including deletions of freshly downloaded rows.
         store.seed()
+        // Capture activity before downloading content: never mark a newer event as
+        // seen against an older content snapshot. Failure keeps existing badges.
+        val activity = (remote as? ListActivityTransport)?.activitySnapshot()?.associate {
+            val row = it.jsonObject
+            row.getValue("id").jsonPrimitive.content to row.getValue("revision").jsonPrimitive.long
+        }
         if (!store.hasInitialDownload()) {
             val initial = download(0)
             if (initial.isNotEmpty()) store.discardPristineDefaults()
@@ -167,6 +185,10 @@ class SyncController(db: AppDatabase, private val remote: SyncTransport,
         refreshSharing()
         media?.synchronize()
         val pending = store.pendingCount() + (media?.store?.count() ?: 0)
+        if (activity != null && pending == 0) {
+            listChanges.update(activity, visibleList?.let { store.remoteListId(it) })
+            mutableUnread.value = listChanges.unread(store.listMappings())
+        }
         mutableStatus.value = SyncStatus(if (pending == 0) "Up to date" else "Waiting to sync", pending, true)
     }
 
