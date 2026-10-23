@@ -710,3 +710,27 @@ Wife's phone update remains pending. Release key and private phone databases rem
 outside Git. Last owner-confirmed remote commit is 39b1495 (stable-2026-10-22).
 Local pre-change tag: checkpoint-before-cancel-badges-theme-2026-10-23. Preserve
 unrelated .idea deviceManager/easycode files. No agent push; provide push command.
+
+## Honor-only follow-up — 2026-10-23
+
+Owner explicitly cannot connect Note 20 now; deferred that update/physical badge
+acceptance until later. Do not keep asking for Note 20 during Honor-only work.
+Finished an extra authenticated live RPC test from Honor: PhysicalGroupCancelTest
+created 3 generated disposable lists, invited the designated existing test account,
+cancelled one pending row, retried, and verified all 3 pending invitations gone.
+Other invitations (including Changes test) and existing members were preserved.
+Generated proof lists were soft-deleted and the private ledger removed. PASS (1).
+Together with the previous 15 isolated device tests, this adds a real-account
+cancellation proof. It is opt-in and does not modify real Room rows. Gradle build
+with this new test succeeded; production app code/version stays 1.4.0-preview/8.
+
+Honor was reopened, showed Up to date, and its exact list/item/catalog contents
+matched the earlier post-update backup; no queued writes. Private follow-up backup:
+workspace/work/honor-after-live-group-cancel-20261023-020651.tar. Signed release APK
+hash is unchanged: 4E4D2F7B99A84B2A73DB8ED81E4B701E88CA019A5DAD95AC4D699971985B2708.
+Honor is left on Changes test (qty1/not purchased). Keep this original temporary
+list/product/invitation until the deferred Note 20 badge acceptance, then clean
+those up. All 3 extra live-cancellation fixtures ARE cleaned. MK/System retained.
+No agent push. Feature commit is 3330df4; latest confirmed owner push remains
+39b1495 until the owner supplies newer push output. Next: Note 20 when available,
+then wife's release APK update. Do not invent new features without an agreed scope.

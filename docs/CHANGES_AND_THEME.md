@@ -61,3 +61,21 @@ the personal phone's MK locale and real activity-result registry for photo actio
 See the latest PROJECT_HANDOVER.md section for final device acceptance, APK signing,
 Git checkpoint and remaining work. Never infer physical cross-device acceptance
 solely from these automated checks.
+
+### Additional Honor live-account proof — 2026-10-23
+
+Owner deferred Note 20 and requested finishing Honor-only work. The explicitly
+opted-in PhysicalGroupCancelTest used the signed-in Honor account to create three
+generated disposable list IDs, invite the designated existing test recipient,
+cancel one invitation, retry it, and verify that all three pending rows disappeared.
+Existing invitations (including Changes test) and members were preserved. The
+generated test lists were soft-deleted and the private cleanup ledger removed.
+This live RPC test passed. It never launches the main UI or writes real Room rows.
+Normal test runs skip it unless physicalGroupCancel=true and the expected owner
+and recipient arguments are provided. A stale ledger blocks rerun after incomplete
+cleanup, rather than creating more fixtures.
+
+After normal app synchronization, exact comparison of every local list/item/catalog
+row against the earlier private backup passed; queue empty and Up to date. The
+pre-existing Changes test fixture remains for the deferred two-phone badge check.
+App code and signed 1.4.0 APK are unchanged by this test-only follow-up.

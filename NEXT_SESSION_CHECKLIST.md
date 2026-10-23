@@ -288,3 +288,14 @@ Always provide git push origin master on saving; owner performs push.
 
 See latest PROJECT_HANDOVER.md section for exact fixture ownership and next actions.
 Do not repeat already passing checks unless new changes/failures justify it.
+
+## Honor-only follow-up — owner deferred Note 20
+
+- [x] Additional real-account three-list Cancel + retry proof passed on Honor.
+- [x] Other invitations/member access preserved; 3 extra proof fixtures cleaned.
+- [x] Exact local list/item/catalog comparison passed; Up to date, queue empty.
+- [x] Signed APK unchanged; no production-code/version change in this follow-up.
+- [ ] Note 20 update and physical two-phone badge check: deferred by owner until available.
+- [ ] Keep Changes test / Changes test product and its invitation for that check.
+- [ ] After that check, clean only Changes test fixtures and update wife's phone.
+- [ ] Owner push: git push origin master.
