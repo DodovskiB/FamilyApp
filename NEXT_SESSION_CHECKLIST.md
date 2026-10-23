@@ -1,6 +1,6 @@
 # Shopping List App — чек-листа за продолжување
 
-> Актуелно: 1.4.0-preview/8; види ја последната секција за промени, тема и Note 20.
+> Актуелно: 1.4.1-preview/9; физичката проверка на знакчињата и чистењето се завршени.
 > Следи ја последната секција; старите чекори/WIP предупредувања се историски.
 
 Подготвено: 21 октомври 2026. За следната сесија: 22 октомври 2026.
@@ -310,3 +310,22 @@ Do not repeat already passing checks unless new changes/failures justify it.
 - [ ] Clean temporary Changes test list/entry and private Honor catalog fixture afterward.
 
 No new APK/build is needed to continue from here.
+
+## Latest verified state — 2026-10-23, 1.4.1-preview/9
+
+This section supersedes the old pending phone/test fixture steps above.
+
+- [x] Physical two-account badge: appears, persists after restart, clears on open.
+- [x] Live changes while list is visible leave no stale badge on home.
+- [x] Changes test list/entry and private catalog fixture cleaned by owner.
+- [x] Fixed full-screen theme background; actual pixel regression passes.
+- [x] Debug/release/test APK builds and 3 unit tests passed; 3 targeted UI tests passed.
+- [x] Note 20 and Honor update-installed 1.4.1/9; languages and System retained.
+- [x] Both private backups: exact original entity rows, healthy SQLite, empty queues.
+- [x] Signed 1.4.1 distribution APK prepared, same release signing certificate.
+- [ ] Owner push: git push origin master (last confirmed remote 605bc92).
+- [ ] Update wife's phone using the compatible signed release APK.
+- [ ] Agree next product work; Google sign-in branding remains deferred.
+
+No temporary Changes test records remain to clean. Do not recreate tests or repeat
+passing checks without a new change/failure. See latest PROJECT_HANDOVER.md.

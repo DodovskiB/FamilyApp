@@ -1,6 +1,6 @@
 # Shopping List App — продолжување од друг разговор или компјутер
 
-> Најново: 1.4.0-preview/8 — групно Cancel, знакче за промени и избор на тема.
+> Најново: 1.4.1-preview/9 — групно Cancel, проверени знакчиња и целосна темна позадина.
 > Прочитај ја последната секција и docs/CHANGES_AND_THEME.md за проверките и што чека.
 > Постарите WIP предупредувања подолу се историски.
 
@@ -750,3 +750,40 @@ yet. Resume at Invitations (1) -> verify Changes test only -> Accept. Follow the
 existing badge acceptance plan above. Honor remains the fixture owner. Do not
 repeat installation/build/tests just because this checkpoint is resumed.
 No production-code or APK changes in this documentation-only update.
+
+## Latest verified checkpoint — 2026-10-23, 1.4.1-preview/9
+
+This section supersedes the pending acceptance/cleanup steps above. Owner-confirmed
+remote is 605bc92; later local commits require owner push (git push origin master).
+
+Physical badge acceptance PASSED between Honor and Note 20, different accounts.
+Note 20 accepted only Changes test. Honor changed quantity to 3 while Note 20
+remained on home: the badge appeared, survived force-stop/relaunch, and cleared
+after opening. With Note 20 showing the list, Honor changed quantity to 4: the
+value updated live and returning home left no stale badge. Owner then deleted
+Changes test and its private catalog fixture on Honor; removal reached Note 20.
+
+Visual review revealed that MaterialTheme supplied colors without painting the
+home background. Fixed FamilyAppTheme with a full-screen Surface and onBackground
+content color. No architecture/data changes. The regression now checks actual
+rendered pixels in Light, Dark and System, in addition to palette selection.
+Android Studio debug/release/test APK builds and all 3 unit tests passed; the 3
+AppearanceChangesUiTest tests passed directly on Note 20. Earlier SQL suite,
+15 isolated device tests and Honor live group-cancel proof remain valid.
+
+Both Note 20 and Honor update-installed DEBUG 1.4.1-preview/9 without uninstall.
+Note 20 full home Light/Dark appearance visually verified; restored System and
+preserved EN. Honor retains MK/System, original three list cards and shows fully
+synchronized. Private post-cleanup archives for BOTH phones passed SQLite checks,
+exact original list/item/catalog row comparisons against pre-session backups,
+and empty sync queues. Backups/screenshots stay in workspace/work, outside Git.
+
+New signed distribution APK: workspace/Shopping-List-App-1.4.1-preview.apk.
+SHA256: 522C4C9243C9A060BAEAC476110BE99520D7944879969C521701318657D1F23A.
+v2/v3 verified; release signing certificate unchanged from 1.4.0. Do not overwrite
+distributed older artifacts. Personal test phones use DEBUG signing; never
+uninstall them or replace with a differently signed release to force an update.
+
+Next: wife's phone can update using the signed release APK over its compatible
+release installation. Google sign-in hostname/branding remains deferred. Agree
+the next product scope before new features. Preserve unrelated .idea files.

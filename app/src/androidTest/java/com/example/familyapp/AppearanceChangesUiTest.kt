@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.lifecycle.ViewModelProvider
@@ -66,7 +67,7 @@ class AppearanceChangesUiTest {
         } finally { compose.runOnIdle { store.clear() };db.close() }
     }
 
-    @Test fun themeChoiceChangesActualPaletteAndSystemChoiceFollowsSystem() {
+    @Test fun themeChoicePaintsFullBackgroundAndFollowsSystem() {
         var mode by mutableStateOf(ThemeMode.SYSTEM)
         var systemDark by mutableStateOf(false)
         var brightness = 0f
@@ -74,16 +75,24 @@ class AppearanceChangesUiTest {
             brightness=MaterialTheme.colorScheme.background.luminance()
             Column { ThemeSelector(mode) { mode=it } }
         } }
+        fun paintedBrightness(): Float {
+            val pixels = compose.onRoot().captureToImage().toPixelMap()
+            return pixels[pixels.width/2,pixels.height-8].luminance()
+        }
         compose.runOnIdle { assertTrue(brightness>0.5f) }
+        assertTrue(paintedBrightness()>0.5f)
         compose.onNodeWithText("Theme").performClick()
         compose.onNodeWithText("Dark").performClick()
         compose.runOnIdle { assertEquals(ThemeMode.DARK,mode);assertTrue(brightness<0.5f) }
+        assertTrue(paintedBrightness()<0.5f)
         compose.onNodeWithText("Theme").performClick()
         compose.onNodeWithText("Light").performClick()
         compose.runOnIdle { assertTrue(brightness>0.5f);systemDark=true }
+        assertTrue(paintedBrightness()>0.5f)
         compose.runOnIdle { assertTrue(brightness>0.5f) }
         compose.onNodeWithText("Theme").performClick()
         compose.onNodeWithText("System").performClick()
         compose.runOnIdle { assertTrue(brightness<0.5f) }
+        assertTrue(paintedBrightness()<0.5f)
     }
 }

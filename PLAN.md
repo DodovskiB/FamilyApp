@@ -244,3 +244,10 @@ No OS push notification service is requested for the home-card badge.
 ## Implemented follow-ups — 2026-10-23
 
 Group cancellation, actor-aware change badges and saved System/Light/Dark are implemented in 1.4.0-preview/8. Backend deployed and regression-tested; Honor updated. Physical two-phone badge acceptance, Note 20 update and temporary Changes test cleanup are pending. Read the latest PROJECT_HANDOVER.md section.
+
+2026-10-23 follow-up: physical two-account badge appearance/restart/clear/live-update
+checks and fixture cleanup are complete. Both phones run 1.4.1-preview/9, including
+a full-screen theme background fix verified with rendered-pixel UI regression and
+visual Light/Dark review. Original data on both phones is preserved exactly;
+queues empty. Signed APK ready. Next: wife's compatible release update, owner push,
+then agree new scope; Google branding remains deferred.

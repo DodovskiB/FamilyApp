@@ -44,6 +44,10 @@ accounts and the account screen, survives restart, and preserves the EN/MK choic
 System follows the phone's dark setting. Android 12+ dynamic accent colors remain
 enabled, so palettes can still vary between phones/wallpapers.
 
+Version 1.4.1 adds a full-screen themed Surface: MaterialTheme alone did not paint
+the home background or provide a default content color. Rendered pixel assertions
+now verify actual light/dark backgrounds, not just the selected color palette.
+
 ## Verification
 
 The migration and exact rollback SQL regression suite were exercised through the
@@ -61,6 +65,13 @@ the personal phone's MK locale and real activity-result registry for photo actio
 See the latest PROJECT_HANDOVER.md section for final device acceptance, APK signing,
 Git checkpoint and remaining work. Never infer physical cross-device acceptance
 solely from these automated checks.
+
+Physical cross-account acceptance on 2026-10-23 also passed: Honor changes produced
+a Note 20 home badge, which survived restart and cleared on opening. A further
+change while the list was visible updated immediately and left no stale badge.
+Owner removed the temporary list and catalog product. Both phones now run 1.4.1/9;
+exact original entity comparisons and empty sync queues were verified after cleanup.
+The targeted three UI tests passed again on Note 20 after the Surface fix.
 
 ### Additional Honor live-account proof — 2026-10-23
 
